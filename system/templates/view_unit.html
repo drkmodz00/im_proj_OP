@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+    <form method="POST" action="">
+        {% csrf_token %}
+
+        <!-- HEADER -->
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="fw-bold">
+                <input type="text" name="asset_tag" class="form-control form-control-lg" value="{{ unit.asset_tag }}" required>
+            </h2>
+            <div>
+                <a href="{% url 'room' unit.room.id %}" class="btn btn-light">Cancel</a>
+                <button type="submit" name="update" class="btn btn-dark">Save Changes</button>
+            </div>
+        </div>
+
+        <p class="text-muted">
+            Status: 
+            <select name="status" class="form-select d-inline-block w-auto ms-2">
+                <option value="Working" {% if unit.status == "Working" %}selected{% endif %}>Working</option>
+                <option value="Maintenance" {% if unit.status == "Maintenance" %}selected{% endif %}>Maintenance</option>
+                <option value="Defective" {% if unit.status == "Defective" %}selected{% endif %}>Defective</option>
+            </select>
+        </p>
+
+        <hr>
+
+        <div class="row">
+
+            <!-- LEFT SIDE -->
+            <div class="col-md-8">
+
+                <h6 class="text-muted">HARDWARE SPECIFICATION</h6>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label"><strong>Manufacturer</strong></label>
+                        <input type="text" name="cpu" class="form-control" value="{{ hardware.cpu }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label"><strong>Model</strong></label>
+                        <input type="text" name="gpu" class="form-control" value="{{ hardware.gpu }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label"><strong>Processor</strong></label>
+                        <input type="text" name="processor" class="form-control" value="{{ hardware.cpu }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label"><strong>Memory</strong></label>
+                        <input type="text" name="ram" class="form-control" value="{{ hardware.ram }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label"><strong>Storage</strong></label>
+                        <input type="text" name="storage" class="form-control" value="{{ hardware.storage }}">
+                    </div>
+                </div>
+
+                <hr>
+
+                <h6 class="text-muted">UNIT ASSIGNMENT</h6>
+                <select name="room_id" class="form-select w-50">
+                    {% for room in rooms %}
+                        <option value="{{ room.id }}" {% if room.id == unit.room.id %}selected{% endif %}>{{ room.room_name }}</option>
+                    {% endfor %}
+                </select>
+
+                <hr>
+
+                <h6 class="text-muted">SOFTWARE STACK</h6>
+                <label class="form-label"><strong>OS</strong></label>
+                <input type="text" name="os" class="form-control mb-2" value="{{ software.os }}">
+
+                <label class="form-label"><strong>Apps</strong></label>
+                <textarea name="installed_apps" class="form-control" rows="3">{{ software.installed_apps }}</textarea>
+
+            </div>
+
+            <!-- RIGHT SIDE -->
+            <div class="col-md-4">
+
+                <h6 class="text-muted">SYSTEM INTEGRITY</h6>
+
+                {% if rating %}
+                    <div>
+                        <label class="form-check-label">
+                            <input type="radio" name="condition" value="Operational" {% if rating.hardware_condition == "Operational" %}checked{% endif %}>
+                            Operational (Good)
+                        </label>
+                    </div>
+                    <div>
+                        <label class="form-check-label">
+                            <input type="radio" name="condition" value="Degraded" {% if rating.hardware_condition == "Degraded" %}checked{% endif %}>
+                            Degraded (Fair)
+                        </label>
+                    </div>
+                    <div>
+                        <label class="form-check-label">
+                            <input type="radio" name="condition" value="Critical" {% if rating.hardware_condition == "Critical" %}checked{% endif %}>
+                            Critical (Poor)
+                        </label>
+                    </div>
+                {% else %}
+                    <p>No inspection data</p>
+                {% endif %}
+
+                <hr>
+
+                  <h6 class="text-muted">TECHNICIANS</h6>
+
+                  <ul class="list-group mb-2" style="max-height: 200px; overflow-y: auto;">
+                    {% for tech in technicians_preview %}
+                      <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                          <strong>{{ tech.name }}</strong><br>
+                          <small class="text-muted">{{ tech.email }}</small>
+                        </div>
+                        <span class="badge bg-primary">{{ tech.status }}</span>
+                      </li>
+                    {% empty %}
+                      <li class="list-group-item text-muted">No technicians found.</li>
+                    {% endfor %}
+                  </ul>
+
+                  <a href="{% url 'technicians' %}" class="btn btn-sm btn-outline-primary">View All Technicians</a>                <hr>
+
+                <h6 class="text-muted">NOTES</h6>
+                <textarea name="remarks" class="form-control" rows="5">{% if rating %}{{ rating.remarks }}{% endif %}</textarea>
+
+            </div>
+
+        </div>
+    </form>
+
+</div>
+
+{% endblock %}

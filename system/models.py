@@ -1,4 +1,8 @@
+
+from datetime import date
+
 from django.db import models
+from django.forms import ValidationError
 
 class LabRoom(models.Model):
     room_name = models.CharField(max_length=50)
@@ -18,6 +22,11 @@ class ComputerUnit(models.Model):
     room = models.ForeignKey(LabRoom, on_delete=models.CASCADE)
     asset_tag = models.CharField(max_length=50)
     status = models.CharField(max_length=50)
+    STATUS_CHOICES = {
+        'Working': 'Working',
+        'Defective': 'Defective',
+        'Maintenance': 'Maintenance'
+    }
 
     def __str__(self):
         return self.asset_tag
@@ -25,10 +34,25 @@ class ComputerUnit(models.Model):
 
 class Hardware(models.Model):
     unit = models.ForeignKey(ComputerUnit, on_delete=models.CASCADE)
+    manufacturer = models.CharField(max_length=100, blank=True)
+    model_number = models.CharField(max_length=100, blank=True)
     cpu = models.CharField(max_length=50)
     ram = models.CharField(max_length=50)
     storage = models.CharField(max_length=50)
     gpu = models.CharField(max_length=50)
+    network_adapter = models.CharField(max_length=100, blank=True)
+
+    purchase_date = models.DateField(null=True, blank=True)
+    warranty_status = models.CharField(max_length=50, blank=True)
+
+    CONDITION_CHOICES = {
+        ('Good', 'Good'),
+        ('Fair', 'Fair'),
+        ('Poor', 'Poor'),
+    }
+    condition = models.CharField(max_length=20, choices=CONDITION_CHOICES, default='Good')
+
+    notes = models.TextField(blank=True)
 
     def __str__(self):
         return f"{self.unit} Hardware"
@@ -44,12 +68,18 @@ class Software(models.Model):
 
 
 class Technician(models.Model):
+    STATUS_CHOICES = [
+        ('Active', 'Active'),
+        ('Inactive', 'Inactive'),
+    ]
+
     name = models.CharField(max_length=100)
     email = models.EmailField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Active')
+    specialty = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
         return self.name
-
 
 class AssessmentPeriod(models.Model):
     semester = models.CharField(max_length=20)
@@ -62,20 +92,41 @@ class AssessmentPeriod(models.Model):
 
 
 class Inspection(models.Model):
-    unit = models.ForeignKey(ComputerUnit, on_delete=models.CASCADE)
+    unit = models.ForeignKey(ComputerUnit, on_delete=models.CASCADE,related_name='inspection')
     technician = models.ForeignKey(Technician, on_delete=models.CASCADE)
-    period = models.ForeignKey(AssessmentPeriod, on_delete=models.CASCADE)
-    date_checked = models.DateField()
+    period = models.ForeignKey(AssessmentPeriod, on_delete=models.CASCADE)  # Only the field
+    date_checked = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return f"Inspection {self.id}"
 
-
 class ConditionRating(models.Model):
-    inspection = models.ForeignKey(Inspection, on_delete=models.CASCADE)
+    inspection = models.ForeignKey(Inspection, on_delete=models.CASCADE, related_name='rating')
     hardware_condition = models.CharField(max_length=50)
     software_condition = models.CharField(max_length=50)
     remarks = models.TextField()
 
     def __str__(self):
         return f"Rating {self.id}"
+
+class Equipment(models.Model):
+    # Temporarily allow null
+    lab = models.ForeignKey(LabRoom, on_delete=models.CASCADE, null=True)
+    unit = models.ForeignKey(ComputerUnit, on_delete=models.CASCADE)
+    device_type = models.CharField(max_length=50)
+    brand = models.CharField(max_length=50)
+    model = models.CharField(max_length=50)
+    serial_number = models.CharField(max_length=100)
+    condition = models.CharField(max_length=50)
+    remarks = models.TextField(blank=True)
+
+    def clean(self):
+        if self.unit.room != self.lab:
+            raise ValidationError("Unit must belong to the same lab as the equipment.")
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Equipment {self.id} - {self.device_type} ({self.lab.room_name if self.lab else 'No Lab'})"

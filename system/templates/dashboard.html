@@ -67,11 +67,9 @@
 </div>
 
 <!-- Laboratory Rooms Table -->
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class=" d-flex g-4 align-items-center mb-3">
+    
     <h2>Laboratory Rooms</h2>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLabModal">
-        + Add Room
-    </button>
 </div>
 
 <div class="card shadow-sm border-0">
@@ -80,7 +78,7 @@
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light text-uppercase small">
                 <tr>
-                    <th class="py-3 px-3">Room Name</th>
+                    <th class="py-3 px-3">LAB Name</th>
                     <th class="py-3 px-3">Location</th>
                     <th class="py-3 px-3">Capacity</th>
                     <th class="py-3 px-3">Status</th>
@@ -123,6 +121,6 @@
 <!-- Pagination -->
 {% include "pagination.html" with page_obj=rooms %}
 </div>
-{% include "lab_modal.html" %}
+{% include "modal/lab_modal.html" %}
 
 {% endblock %}

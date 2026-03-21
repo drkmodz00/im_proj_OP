@@ -2,217 +2,87 @@
 {% block content %}
 
 <div class="container mt-4">
-
     <div class="card shadow-sm">
-
         <div class="card-body">
 
-            <h5 class="fw-bold mb-4">
-
-                <!-- clipboard icon -->
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                fill="currentColor" class="me-2" viewBox="0 0 16 16">
-                    <path d="M10 1.5v1h2A1.5 1.5 0 0 1 13.5 4v9A1.5 1.5 0 0 1 
-                    12 14.5H4A1.5 1.5 0 0 1 2.5 13V4A1.5 1.5 0 0 1 
-                    4 2.5h2v-1h4z"/>
-                </svg>
-
-                Equipment Inspection Form
-
-            </h5>
-
-            <form method="POST">
-
-                {% csrf_token %}
-
-                <!-- LAB SELECTION -->
-                <div class="mb-3">
-
-                    <label class="form-label fw-semibold">
-
-                        <!-- location icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                        fill="red" viewBox="0 0 16 16">
-                            <path d="M8 16s6-5.686 6-10A6 6 0 1 0 2 6c0 4.314 6 10 6 10z"/>
-                            <circle cx="8" cy="6" r="2"/>
-                        </svg>
-
-                        Lab Selection
-
-                    </label>
-
-                    <select name="room" class="form-select">
-
-                        {% for room in rooms %}
-                            <option value="{{ room.id }}">
-                                {{ room.room_name }} - {{ room.location }}
-                            </option>
-                        {% endfor %}
-
-                    </select>
-
-                </div>
-
-
-
-                <!-- EQUIPMENT TYPE -->
-
-                <label class="form-label fw-semibold">Equipment Type</label>
-
-                <div class="d-flex gap-3 mb-4">
-
-                    <button type="submit" name="equipment_type" value="Computer"
-                    class="btn btn-outline-secondary">
-
-                        <!-- monitor icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                        fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M1 3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 
-                            1v7a1 1 0 0 1-1 1H9.5l1.5 2H5l1.5-2H2a1 
-                            1 0 0 1-1-1V3z"/>
-                        </svg>
-
-                        <br>Computer
-
-                    </button>
-
-
-                    <button type="submit" name="equipment_type" value="Keyboard"
-                    class="btn btn-outline-secondary">
-
-                        <!-- keyboard icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                        fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M1 5h14v6H1V5zm1 1v4h12V6H2z"/>
-                        </svg>
-
-                        <br>Keyboard
-
-                    </button>
-
-
-                    <button type="submit" name="equipment_type" value="Printer"
-                    class="btn btn-outline-secondary">
-
-                        <!-- printer icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
-                        fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M2 7V2h12v5H2zm0 2h12v5H2V9z"/>
-                        </svg>
-
-                        <br>Printer
-
-                    </button>
-
-                </div>
-
-
-
-                <!-- EQUIPMENT ID -->
-
-                <div class="mb-3">
-
-                    <label class="form-label fw-semibold">
-                        Unit / Serial Number
-                    </label>
-
-                    <input type="text"
-                           name="asset_tag"
-                           class="form-control"
-                           placeholder="Enter Asset Tag">
-
-                </div>
-
-
-
-                <!-- EQUIPMENT CONDITION -->
-
-                <label class="form-label fw-semibold">
-                    Equipment Condition
-                </label>
-
-                <div class="d-flex gap-3 mb-4">
-
-                    <button type="submit" name="condition"
-                    value="Good" class="btn btn-success">
-                        Good
-                    </button>
-
-                    <button type="submit" name="condition"
-                    value="Damaged" class="btn btn-warning">
-                        Damaged
-                    </button>
-
-                    <button type="submit" name="condition"
-                    value="Replacement Needed" class="btn btn-danger">
-                        Replacement Needed
-                    </button>
-
-                </div>
-
-
-
-                <!-- INSPECTION NOTES -->
-
-                <div class="mb-4">
-
-                    <label class="form-label fw-semibold">
-
-                        <!-- note icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                        fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M14 2H2v12h12V2z"/>
-                        </svg>
-
-                        Inspection Notes
-
-                    </label>
-
-                    <textarea name="remarks"
-                    class="form-control"
-                    rows="3"
-                    placeholder="Enter inspection remarks..."></textarea>
-
-                </div>
-
-
-
-                <!-- BUTTONS -->
-
-                <div class="d-flex gap-2">
-
-                    <button type="submit" class="btn btn-primary">
-
-                        <!-- check icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                        width="16" height="16"
-                        fill="currentColor"
-                        viewBox="0 0 16 16">
-
-                        <path d="M13.485 1.929 6 9.414 2.515 
-                        5.929 1.1 7.343 6 12.243l8.9-8.9z"/>
-
-                        </svg>
-
-                        Submit Inspection
-
-                    </button>
-
-                    <button type="reset"
-                    class="btn btn-outline-secondary">
-
-                        Clear Form
-
-                    </button>
-
-                </div>
-
+            <h5 class="fw-bold mb-4">Equipment Inspection Form</h5>
+            <!-- LAB SELECTION FORM (GET) -->
+            <form method="GET" class="mb-3">
+                <label class="form-label fw-semibold">Lab Selection</label>
+                <select name="lab" class="form-select" onchange="this.form.submit()">
+                    <option value="" disabled selected>-- Select Lab --</option>
+                    {% for room in rooms %}
+                        <option value="{{ room.id }}" {% if room.id == selected_lab_id %}selected{% endif %}>
+                            {{ room.room_name }} - {{ room.location }}
+                        </option>
+                    {% endfor %}
+                </select>
             </form>
 
+            {% if selected_lab_id %}
+            <form method="POST">
+                {% csrf_token %}
+
+                <input type="hidden" name="room" value="{{ selected_lab_id }}">
+
+                <!-- PERIOD -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Assessment Period</label>
+                    <select name="period_id" class="form-select" required>
+                        <option value="" disabled selected>-- Select Period --</option>
+                        {% for period in periods %}
+                            <option value="{{ period.id }}">
+                                {{ period.semester }} {{ period.school_year }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- UNIT -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Unit / Serial Number</label>
+                    <select name="unit_id" class="form-select">
+                        {% for unit in units %}
+                            <option value="{{ unit.id }}">{{ unit.asset_tag }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- EQUIPMENT -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Equipment</label>
+                    <select name="equipment_id" class="form-select" required>
+                        <option value="" disabled selected>-- Select Equipment --</option>
+                        {% for equip in equipments %}
+                            <option value="{{ equip.id }}">
+                                {{ equip.unit.asset_tag }} - {{ equip.device_type }}
+                                ({{ equip.brand }} {{ equip.model }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- CONDITION -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Condition</label>
+                    <select name="condition" class="form-select" required>
+                        <option value="Good">Good</option>
+                        <option value="Damaged">Damaged</option>
+                        <option value="Replacement Needed">Replacement Needed</option>
+                    </select>
+                </div>
+
+                <!-- NOTES -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Inspection Notes</label>
+                    <textarea name="remarks" class="form-control"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Submit Inspection</button>
+            </form>
+            {% endif %}
         </div>
-
     </div>
-
 </div>
 
 {% endblock %}

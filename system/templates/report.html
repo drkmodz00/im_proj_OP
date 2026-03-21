@@ -3,134 +3,49 @@
 
 <div class="container mt-4">
 
-    <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-
-        <h5 class="fw-bold">
-
-            <!-- report icon -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-            fill="currentColor" class="me-2" viewBox="0 0 16 16">
-                <path d="M2 2h12v12H2z"/>
-            </svg>
-
-            Laboratory Report
-
-        </h5>
-
-        <div class="d-flex gap-2 align-items-center">
-
-            <label class="fw-semibold">School Year</label>
-
-            <input type="text"
-                   class="form-control form-control-sm"
-                   style="width:120px;"
-                   placeholder="2024-2025">
-
-        </div>
-
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        
+        <h4 class="fw-bold">Inspection Reports</h4>
+        <form method="GET" class="d-flex gap-2">
+            <input type="text" name="school_year" placeholder="2024-2025" class="form-control" value="{{ school_year }}">
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </form>
     </div>
 
+    <div class="list-group">
+        {% for room in rooms %}
+            <h5>{{ room.room_name }}</h5>
 
+            {% for unit in room.computerunit_set.all %}
+                {% if unit.inspection %}
+                    <div class="border p-2 mb-2">
 
-    <!-- SUMMARY LABEL -->
-    <p class="text-muted fw-semibold">Summary</p>
+                        {% with insp=unit.inspection %}
+                            <p>Inspection date: {{ insp.date_checked }}</p>
 
+                            <!-- VIEW BUTTON -->
+                            <a href="{% url 'view_inspection_details' room.id %}" 
+                            class="btn btn-sm btn-info">
+                            View
+                            </a>
 
+                            <!-- DELETE BUTTON -->
+                            <form action="{% url 'delete_inspections_by_room' room.id %}" 
+                                method="POST" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger"
+                                        onclick="return confirm('Are you sure you want to delete this inspection?');">
+                                    Delete
+                                </button>
+                            </form>
 
-    <!-- ROOM REPORT -->
-    {% for room in rooms %}
+                        {% endwith %}
 
-    <div class="card shadow-sm mb-3">
-
-        <div class="card-body">
-
-            <h6 class="fw-bold mb-3">
-
-                <!-- lab icon -->
-                <svg xmlns="http://www.w3.org/2000/svg"
-                width="18" height="18"
-                fill="currentColor"
-                class="me-2"
-                viewBox="0 0 16 16">
-
-                    <path d="M4.5 0a.5.5 0 0 1 .5.5V2h6V.5a.5.5 0 0 1 1 
-                    0V2h1a1 1 0 0 1 1 1v1H1V3a1 1 0 0 1 1-1h1V.5a.5.5 
-                    0 0 1 .5-.5z"/>
-
-                </svg>
-
-                {{ room.room_name }}
-
-            </h6>
-
-
-            <table class="table align-middle">
-
-                <thead class="table-light">
-
-                    <tr>
-
-                        <th>Unit</th>
-                        <th>CPU</th>
-                        <th>RAM</th>
-                        <th>Status</th>
-
-                    </tr>
-
-                </thead>
-
-
-                <tbody>
-
-                    {% for unit in room.computerunit_set.all %}
-
-                    <tr>
-
-                        <td>{{ unit.asset_tag }}</td>
-
-                        <td>{{ unit.hardware.cpu }}</td>
-
-                        <td>{{ unit.hardware.ram }}</td>
-
-                        <td>
-
-                            {% if unit.status == "Good" or unit.status == "Working" %}
-
-                                <span class="badge bg-success">
-                                    Good
-                                </span>
-
-                            {% elif unit.status == "Damaged" %}
-
-                                <span class="badge bg-warning text-dark">
-                                    Damaged
-                                </span>
-
-                            {% else %}
-
-                                <span class="badge bg-danger">
-                                    Needs Repair
-                                </span>
-
-                            {% endif %}
-
-                        </td>
-
-                    </tr>
-
-                    {% endfor %}
-
-                </tbody>
-
-            </table>
-
-        </div>
-
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
     </div>
-
-    {% endfor %}
-
 </div>
 
 {% endblock %}

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Technicians{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Technicians</h1>
+
+<div class="row g-4 mb-5">
+
+    <!-- Total Active Technicians -->
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 p-3 d-flex flex-row align-items-center">
+            
+            <!-- Icon -->
+            <div class="me-3 p-3 bg-light rounded">
+                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M4 21v-2a4 4 0 0 1 3-3.87"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+            </div>
+
+            <!-- Text -->
+            <div>
+                <div class="text-muted small">Active Technicians</div>
+                <div class="fs-4 fw-bold">{{ total_technicians }}</div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- Technicians Table -->
+<div class="d-flex g-4 align-items-center mb-3">
+    <h2>Technicians List</h2>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light text-uppercase small">
+                <tr>
+                    <th class="py-3 px-3">Avatar</th>
+                    <th class="py-3 px-3">Name</th>
+                    <th class="py-3 px-3">Email</th>
+                    <th class="py-3 px-3">Status</th>
+                    <th class="py-3 px-3 text-end">Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for technician in technicians %}
+                <tr>
+                    <!-- Avatar -->
+                    <td class="py-3 px-3">
+                        <div class="avatar rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center" 
+                             style="width:40px; height:40px; font-weight:bold;">
+                            {{ technician.initials }}
+                        </div>
+                    </td>
+
+                    <!-- Name -->
+                    <td class="py-3 px-3 fw-semibold">{{ technician.name }}</td>
+
+                    <!-- Email -->
+                    <td class="py-3 px-3">
+                        <a href="mailto:{{ technician.email }}">{{ technician.email }}</a>
+                    </td>
+
+                    <!-- Specialty -->
+                    <td class="py-3 px-3">
+                        {{ technician.specialty|default:"N/A" }}
+                    </td>
+
+                    <!-- Status -->
+                    <td class="py-3 px-3">
+                        {% if technician.status == "Active" %}
+                            <span class="badge bg-primary">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Action -->
+                    <td class="py-3 px-3 text-end">
+                        <a href="{% url 'technician_profile' technician.id %}" class="btn btn-sm btn-primary">View</a>
+                        <a href="{% url 'edit_technician' technician.id %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">
+                        No technicians found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+    <!-- Pagination -->
+    {% include "pagination.html" with page_obj=technicians %}
+</div>
+
+{% endblock %}

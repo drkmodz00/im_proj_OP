@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container my-5">
+
+  <div class="card shadow-sm">
+    <div class="card-header d-flex align-items-center">
+      <div class="avatar rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3" style="width: 60px; height: 60px; font-size: 24px; font-weight: bold;">
+        {{ technician.initials }}
+      </div>
+      <div>
+        <h3 class="mb-0">{{ technician.name }}</h3>
+        <small class="text-muted">{{ technician.specialty }}</small>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <h5>Contact Information</h5>
+      <ul class="list-group list-group-flush mb-4">
+        <li class="list-group-item">
+          <strong>Email:</strong>
+          <a href="mailto:{{ technician.email }}">{{ technician.email }}</a>
+        </li>
+        <li class="list-group-item">
+          <strong>Phone:</strong>
+          {{ technician.phone|default:"N/A" }}
+        </li>
+        <li class="list-group-item">
+          <strong>Status:</strong>
+          {% if technician.status == "Active" %}
+            <span class="badge bg-success">Active</span>
+          {% else %}
+            <span class="badge bg-secondary">Inactive</span>
+          {% endif %}
+        </li>
+      </ul>
+
+      <h5>Professional Details</h5>
+      <p>{{ technician.notes|default:"No additional notes available." }}</p>
+
+      <hr>
+
+      <a href="{% url 'technicians' %}" class="btn btn-outline-primary">Back to Technicians</a>
+      <a href="{% url 'edit_technician' technician.id %}" class="btn btn-primary ms-2">Edit Technician</a>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

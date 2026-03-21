@@ -1,67 +1,51 @@
 <div class="modal fade" id="addUnitModal" tabindex="-1">
 
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog ">
 
         <div class="modal-content">
 
             <div class="modal-header">
 
                 <h5 class="modal-title fw-bold">
-
-                    <!-- unit icon -->
-
-
-
-
-
-
-
-
-
-
-
-
-
-                    
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                    width="18" height="18"
-                    fill="currentColor"
-                    class="me-2"
-                    viewBox="0 0 16 16">
-
-                        <path d="M4.5 0a.5.5 0 0 1 .5.5V2h6V.5a.5.5 
-                        0 0 1 1 0V2h1a1 1 0 0 1 1 1v1H1V3a1 1 
-                        0 0 1 1-1h1V.5a.5.5 0 0 1 .5-.5z"/>
-
-                    </svg>
-
                     Add Unit
 
                 </h5>
 
                 <button class="btn-close" data-bs-dismiss="modal"></button>
-
             </div>
-
 
             <div class="modal-body">
 
                 <form method="POST" action="{% url 'add_unit' %}">
-
                     {% csrf_token %}
+
+                    <input type="hidden" name="room_id" value="{{ room.id }}">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold w-50">Asset Tag</label>
+                        <input type="text" name="asset_tag" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="Working">Working</option>
+                            <option value="Defective">Defective</option>
+                            <option value="Maintenance">Maintenance</option>
+                        </select>
+                    </div>
+
                     <div class="mb-3">
 
-                        <label class="form-label fw-semibold w-50">
-                            Asset Tag
+                        <label class="form-label fw-semibold">
+                            CPU
                         </label>
 
                         <input type="text"
-                        name="asset_tag"
-                        class="form-control"
-                        required>
+                        name="cpu"
+                        class="form-control">
 
                     </div>
-
 
                     <div class="mb-3">
 

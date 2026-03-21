@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+    <div class="d-flex align-items-center">
+
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" 
+            stroke-linecap="round" stroke-linejoin="round" 
+            class="lucide lucide-circle-arrow-left-icon me-2" 
+            style="cursor: pointer;"
+            onclick="history.back()">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="m12 8-4 4 4 4"/>
+            <path d="M16 12H8"/>
+        </svg>
+
+        <h4>Inspection Details: {{ room.room_name }} ({{ school_year }})</h4>
+    </div>
+    
+    <table class="table table-striped table-bordered align-middle mt-3">
+        <thead class="table-light">
+            <tr>
+                <th>Unit / Serial Number</th>
+                <th>Equipment</th>
+                <th>Condition</th>
+                <th>Inspection Notes</th>
+                <th>Assessment Period</th>
+                <th>Date Checked</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for insp in inspections %}
+            <tr>
+                <td>{{ insp.unit.asset_tag }}</td>
+                <td>
+                    {% if insp.unit.equipment_set.all %}
+                        {% for eq in insp.unit.equipment_set.all %}
+                            {{ eq.device_type }} ({{ eq.brand }} {{ eq.model }}){% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    {% for rating in insp.rating.all %}
+                        {{ rating.hardware_condition }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}-{% endfor %}
+                </td>
+                <td>
+                    {% for rating in insp.rating.all %}
+                        {{ rating.remarks }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}-{% endfor %}
+                </td>
+                <td>{{ insp.period.semester }} {{ insp.period.school_year }}</td>
+                <td>{{ insp.date_checked }}</td>
+                <td class="d-flex gap-1">
+                    <a href="{% url 'edit_inspection' insp.id %}" class="btn btn-sm btn-warning">Edit</a>
+                    <form method="POST" action="{% url 'delete_inspection' insp.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger"
+                                onclick="return confirm('Delete this inspection?');">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center">No inspections found for this room and school year.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
