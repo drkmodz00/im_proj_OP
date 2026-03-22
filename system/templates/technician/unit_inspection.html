@@ -1,0 +1,107 @@
+{% extends "technician/base.html" %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb mb-1">
+        <li class="breadcrumb-item"><a href="#" class="text-muted text-decoration-none small">Assigned Laboratories</a></li>
+        <li class="breadcrumb-item active small" aria-current="page">Lab A</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Lab A Computers</h2>
+        <p class="text-muted small mb-0">Inventory of hardware assets currently deployed in Laboratory A.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-light border btn-sm px-3"><i class="bi bi-filter me-2"></i>Filter</button>
+        <button class="btn btn-black btn-sm px-3">+ Register Asset</button>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card p-3 border-start border-4 border-dark h-100 shadow-sm">
+            <small class="text-muted fw-bold text-uppercase" style="font-size: 10px;">Total Assets</small>
+            <h3 class="fw-bold mb-1">42</h3>
+            <small class="text-dark"><i class="bi bi-graph-up me-1"></i> +2 This Month</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 border-start border-4 border-secondary h-100 shadow-sm">
+            <small class="text-muted fw-bold text-uppercase" style="font-size: 10px;">Health Score</small>
+            <h3 class="fw-bold mb-2">94%</h3>
+            <div class="progress" style="height: 4px;">
+                <div class="progress-bar bg-dark" style="width: 94%"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 border-start border-4 border-light h-100 shadow-sm">
+            <small class="text-muted fw-bold text-uppercase" style="font-size: 10px;">Pending Inspections</small>
+            <h3 class="fw-bold mb-1">05</h3>
+            <small class="text-muted"><i class="bi bi-clock me-1"></i> Due in 48h</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-3 border border-dark bg-light h-100 shadow-sm">
+            <small class="text-dark fw-bold text-uppercase" style="font-size: 10px;">Critical Faults</small>
+            <h3 class="fw-bold mb-1">02</h3>
+            <small class="fw-bold text-dark"><i class="bi bi-exclamation-triangle-fill me-1"></i> Action Required</small>
+        </div>
+    </div>
+</div>
+<div class="card border-0 shadow-sm overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr class="small text-muted text-uppercase" style="font-size: 11px;">
+                    <th class="ps-4 py-3">Asset Tag</th>
+                    <th>CPU Configuration</th>
+                    <th>RAM Capacity</th>
+                    <th>Uptime Status</th>
+                    <th>Health Condition</th>
+                    <th class="pe-4 text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="ps-4 py-3">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-light border rounded p-2 me-3"><i class="bi bi-pc-display text-dark"></i></div>
+                            <span class="fw-bold">PC-001</span>
+                        </div>
+                    </td>
+                    <td class="small">Intel Core i7-12700K</td>
+                    <td class="small">32GB DDR5</td>
+                    <td><small class="text-dark fw-bold"><i class="bi bi-circle-fill me-2 text-dark" style="font-size: 7px;"></i>Online</small></td>
+                    <td><span class="badge bg-dark text-white rounded-pill px-3">GOOD</span></td>
+                    <td class="pe-4 text-end"><button class="btn btn-light border btn-sm px-3">Inspect</button></td>
+                </tr>
+
+                <tr>
+                    <td class="ps-4 py-3">
+                        <div class="d-flex align-items-center opacity-75">
+                            <div class="bg-light border rounded p-2 me-3"><i class="bi bi-pc-display"></i></div>
+                            <span class="fw-bold">PC-003</span>
+                        </div>
+                    </td>
+                    <td class="small">Intel Core i3-10100</td>
+                    <td class="small">8GB DDR4</td>
+                    <td><small class="text-muted"><i class="bi bi-circle me-2" style="font-size: 7px;"></i>Offline</small></td>
+                    <td><span class="badge border border-dark text-dark rounded-pill px-3">POOR</span></td>
+                    <td class="pe-4 text-end"><button class="btn btn-black btn-sm px-3">Inspect</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="card-footer bg-white border-top d-flex justify-content-between align-items-center px-4 py-3">
+        <small class="text-muted">Showing 1 to 5 of 42 assets</small>
+        <div class="btn-group btn-group-sm">
+            <button class="btn btn-light border"><i class="bi bi-chevron-left"></i></button>
+            <button class="btn btn-light border"><i class="bi bi-chevron-right"></i></button>
+        </div>
+    </div>
+</div>
+{% endblock content %}

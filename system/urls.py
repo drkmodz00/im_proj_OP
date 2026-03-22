@@ -2,10 +2,14 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.dashboard, name='dashboard'),
+    path('', views.login_view, name='login'),
+    path('register/', views.register_view, name='register'),
+    path('logout/', views.logout_view, name='logout'),
+    
+    # admin side
+    path('dashboard', views.dashboard, name='dashboard'),
     path('room/<int:room_id>/', views.room_detail, name='room'),
     path('laboratory/', views.laboratory, name='laboratory'),
-    path('inspection/', views.inspection_form, name='inspection_form'),
     path('report/', views.report, name='report'),
     path('technicians/', views.technician_list, name='technicians'),
 
@@ -27,5 +31,11 @@ urlpatterns = [
     path('technician-profile/<int:technician_id>/', views.technician_profile, name='technician_profile'),
 
          
-    # urls.py
+    # technician
+
+    path("tech-dashboard/", views.tech_dashboard, name="tech_dashboard"),
+    path("assigned-laboratories/", views.assigned_laboratories, name="assigned_laboratories"),
+    path('inspection/', views.inspection_form, name='inspection_form'),
+    path("inspection-history/", views.inspection_history, name="inspection_history"),
+
 ]

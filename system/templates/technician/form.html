@@ -1,0 +1,107 @@
+{% extends "technician/base.html" %}
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card p-3 border-start border-4 border-dark shadow-sm">
+            <small class="text-muted text-uppercase fw-bold" style="font-size: 10px;">Computer ID</small>
+            <h4 class="fw-bold mb-0">PC-001</h4>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3 border-start border-4 border-secondary shadow-sm">
+            <small class="text-muted text-uppercase fw-bold" style="font-size: 10px;">Laboratory</small>
+            <h4 class="fw-bold mb-0">Lab A</h4>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3 border-start border-4 border-light shadow-sm">
+            <small class="text-muted text-uppercase fw-bold" style="font-size: 10px;">Assigned Technician</small>
+            <h4 class="fw-bold mb-0">John Doe</h4>
+        </div>
+    </div>
+</div>
+<div class="card border-0 shadow-sm p-4 mb-4">
+    <h6 class="fw-bold mb-4"><i class="bi bi-cpu-fill me-2"></i> Hardware Condition</h6>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label class="w-100">
+                <input type="radio" name="hardware" class="btn-check" checked>
+                <div class="card p-3 btn btn-outline-dark text-start h-100 shadow-none">
+                    <div class="d-flex justify-content-between">
+                        <span class="fw-bold">Good</span>
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <small class="d-block mt-2 opacity-75">All components functioning and intact.</small>
+                </div>
+            </label>
+        </div>
+        <div class="col-md-4">
+            <label class="w-100">
+                <input type="radio" name="hardware" class="btn-check">
+                <div class="card p-3 btn btn-outline-secondary border-dashed text-start h-100 shadow-none opacity-50">
+                    <span class="fw-bold">Fair</span>
+                    <small class="d-block mt-2">Minor wear and tear detected but operational.</small>
+                </div>
+            </label>
+        </div>
+        <div class="col-md-4">
+            <label class="w-100">
+                <input type="radio" name="hardware" class="btn-check">
+                <div class="card p-3 btn btn-outline-secondary border-dashed text-start h-100 shadow-none opacity-50">
+                    <span class="fw-bold">Poor</span>
+                    <small class="d-block mt-2">Critical damage or failure in physical hardware.</small>
+                </div>
+            </label>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card p-4 border-0 shadow-sm h-100">
+            <h6 class="fw-bold mb-3"><i class="bi bi-window-stack me-2"></i> Software Condition</h6>
+            <div class="list-group">
+                <label class="list-group-item d-flex gap-3 py-3 border-dark bg-light">
+                    <input class="form-check-input flex-shrink-0" type="radio" name="software" checked>
+                    <span>
+                        <strong class="d-block">Up-to-date</strong>
+                        <small class="text-muted">All patches and OS versions are current.</small>
+                    </span>
+                </label>
+                <label class="list-group-item d-flex gap-3 py-3 opacity-50">
+                    <input class="form-check-input flex-shrink-0" type="radio" name="software">
+                    <span>
+                        <strong class="d-block">Outdated</strong>
+                        <small class="text-muted">Critical security updates missing.</small>
+                    </span>
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card p-4 border-0 shadow-sm h-100 text-center">
+             <h6 class="fw-bold mb-3 text-start"><i class="bi bi-keyboard me-2"></i> Equipment Status</h6>
+             <div class="btn-group w-100 py-4" role="group">
+                <input type="radio" class="btn-check" name="equip" id="e1" checked>
+                <label class="btn btn-outline-dark py-3" for="e1">Good</label>
+                <input type="radio" class="btn-check" name="equip" id="e2">
+                <label class="btn btn-outline-dark py-3" for="e2">Fair</label>
+                <input type="radio" class="btn-check" name="equip" id="e3">
+                <label class="btn btn-outline-dark py-3" for="e3">Poor</label>
+             </div>
+             <small class="text-muted">Refers to peripherals: keyboards, mice, and cables.</small>
+        </div>
+    </div>
+</div>
+<div class="card border-0 shadow-sm p-4 mb-5">
+    <h6 class="fw-bold mb-3"><i class="bi bi-chat-left-text me-2"></i> Remarks</h6>
+    <textarea class="form-control bg-light border-0" rows="4" placeholder="Describe any anomalies or specific findings here..."></textarea>
+    
+    <div class="d-flex justify-content-end gap-3 mt-4">
+        <button class="btn btn-link text-muted text-decoration-none fw-bold">Discard Changes</button>
+        <button class="btn btn-black px-5 py-2">
+            <i class="bi bi-check2-circle me-2"></i> Submit Inspection
+        </button>
+    </div>
+</div>
+{% endblock content %}

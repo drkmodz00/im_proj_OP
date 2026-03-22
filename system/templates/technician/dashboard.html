@@ -1,0 +1,102 @@
+{% extends 'technician/base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="mb-4">
+        <small class="text-muted text-uppercase fw-bold">System Overview</small>
+        <h3 class="fw-bold">Technician Dashboard</h3>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card p-4 bg-dark text-white">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <i class="bi bi-pc-display-horizontal fs-4"></i>
+                    <small class="text-white-50">ACTIVE SERVICE</small>
+                </div>
+                <h1 class="display-5 fw-bold mb-0">04</h1>
+                <p class="mb-0 text-white-50">Assigned Labs</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-4 bg-white border">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <i class="bi bi-exclamation-triangle fs-4 text-dark"></i>
+                    <small class="text-muted">ACTION REQUIRED</small>
+                </div>
+                <h1 class="display-5 fw-bold mb-0 text-dark">12</h1>
+                <p class="mb-0 text-muted">Pending Inspections</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-4 bg-light border">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <i class="bi bi-shield-check fs-4"></i>
+                    <small class="text-muted">SYSTEM STATUS</small>
+                </div>
+                <h1 class="display-5 fw-bold mb-0 text-dark">Optimal</h1>
+                <p class="mb-0 text-muted">Network Load: 14.2%</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-12 d-flex justify-content-between align-items-end mb-3">
+            <h5 class="fw-bold mb-0">Your Labs</h5>
+            <a href="#" class="text-dark small text-decoration-none">View Map <i class="bi bi-arrow-right"></i></a>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card overflow-hidden">
+                <div style="height: 120px; background: #333; display: flex; align-items: center; justify-content: center;">
+                    <span class="text-white opacity-25 fw-bold fs-1">LAB_A</span>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <h6 class="fw-bold">PC Lab - North Wing</h6>
+                        <span class="status-pill">Active</span>
+                    </div>
+                    <hr class="my-3">
+                    <div class="row text-center small">
+                        <div class="col-6 border-end">
+                            <p class="text-muted mb-0">LAST INSPECTED</p>
+                            <strong>MAR 12, 2026</strong>
+                        </div>
+                        <div class="col-6">
+                            <p class="text-muted mb-0">STATIONS</p>
+                            <strong>30 / 30 UP</strong>
+                        </div>
+                    </div>
+                    <button class="btn btn-black w-100 mt-4 py-2">Enter Lab System</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card overflow-hidden">
+                <div style="height: 120px; background: #eee; display: flex; align-items: center; justify-content: center;">
+                    <span class="text-muted opacity-50 fw-bold fs-1">LAB_B</span>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <h6 class="fw-bold">Hardware Dev Studio</h6>
+                        <span class="status-pill border-danger text-danger">Maint Required</span>
+                    </div>
+                    <hr class="my-3">
+                    <div class="row text-center small">
+                        <div class="col-6 border-end">
+                            <p class="text-muted mb-0">LAST INSPECTED</p>
+                            <strong>FEB 20, 2026</strong>
+                        </div>
+                        <div class="col-6">
+                            <p class="text-muted mb-0">STATIONS</p>
+                            <strong>24 / 30 UP</strong>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-dark w-100 mt-4 py-2">Enter Lab System</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

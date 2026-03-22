@@ -1,8 +1,8 @@
 
 from datetime import date
-
 from django.db import models
 from django.forms import ValidationError
+from django.contrib.auth.models import User
 
 class LabRoom(models.Model):
     room_name = models.CharField(max_length=50)
@@ -21,13 +21,12 @@ class LabRoom(models.Model):
 class ComputerUnit(models.Model):
     room = models.ForeignKey(LabRoom, on_delete=models.CASCADE)
     asset_tag = models.CharField(max_length=50)
-    status = models.CharField(max_length=50)
     STATUS_CHOICES = {
         'Working': 'Working',
         'Defective': 'Defective',
         'Maintenance': 'Maintenance'
     }
-
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES)
     def __str__(self):
         return self.asset_tag
 
@@ -45,11 +44,11 @@ class Hardware(models.Model):
     purchase_date = models.DateField(null=True, blank=True)
     warranty_status = models.CharField(max_length=50, blank=True)
 
-    CONDITION_CHOICES = {
+    CONDITION_CHOICES = [
         ('Good', 'Good'),
         ('Fair', 'Fair'),
         ('Poor', 'Poor'),
-    }
+    ]
     condition = models.CharField(max_length=20, choices=CONDITION_CHOICES, default='Good')
 
     notes = models.TextField(blank=True)
@@ -68,10 +67,14 @@ class Software(models.Model):
 
 
 class Technician(models.Model):
+    ROLE_CHOICES = [('Admin','Admin'),('Technician','Technician')]
     STATUS_CHOICES = [
         ('Active', 'Active'),
         ('Inactive', 'Inactive'),
     ]
+
+    user = models.OneToOneField('auth.User', on_delete=models.CASCADE,)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='Technician')
 
     name = models.CharField(max_length=100)
     email = models.EmailField()
@@ -79,7 +82,7 @@ class Technician(models.Model):
     specialty = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
-        return self.name
+        return self.user.get.full_name() or self.user.username
 
 class AssessmentPeriod(models.Model):
     semester = models.CharField(max_length=20)
@@ -94,7 +97,11 @@ class AssessmentPeriod(models.Model):
 class Inspection(models.Model):
     unit = models.ForeignKey(ComputerUnit, on_delete=models.CASCADE,related_name='inspection')
     technician = models.ForeignKey(Technician, on_delete=models.CASCADE)
-    period = models.ForeignKey(AssessmentPeriod, on_delete=models.CASCADE)  # Only the field
+    period = models.ForeignKey(AssessmentPeriod, on_delete=models.CASCADE)
+    room = models.ForeignKey(
+        LabRoom, 
+        on_delete=models.CASCADE,
+        default = 9)    
     date_checked = models.DateField(auto_now_add=True)
 
     def __str__(self):

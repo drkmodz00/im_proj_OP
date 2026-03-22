@@ -1,3 +1,5 @@
+from urllib import request
+from django.contrib.auth import authenticate, login, logout
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import *
@@ -6,7 +8,88 @@ from django.db.models import Prefetch, IntegerField, Q
 from django.db.models.functions import Cast, Substr
 from django.urls import reverse
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 
+def login_view(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            try:
+                tech = Technician.objects.get(user=user)
+                if tech.role == "Admin":
+                    return redirect("dashboard")
+                else:
+                    return redirect("tech_dashboard")
+            except Technician.DoesNotExist:
+                messages.error(request,"User has no assigned role")
+                return redirect("login")
+        else:
+            messages.error(request,"Invalid username or password")
+            return redirect("login")
+
+    return render(request,"login.html")
+
+def register_view(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        password2 = request.POST.get("password2")
+        first_name = request.POST.get("first_name")
+        last_name = request.POST.get("last_name")
+        email = request.POST.get("email")
+        role = request.POST.get("role")  # Admin or Technician
+        specialty = request.POST.get("specialty", "")
+
+        # Validate passwords match
+        if password != password2:
+            messages.error(request, "Passwords do not match.")
+            return redirect("register")
+
+        # Check if username exists
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists.")
+            return redirect("register")
+
+        # Create User
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            is_superuser=True if role=="Admin" else False,
+            is_staff=True if role=="Admin" else False
+        )
+
+        # Create Technician profile
+        Technician.objects.create(
+            user=user,
+            role=role,
+            specialty=specialty,
+            status='Active'
+        )
+
+        messages.success(request, f"{role} account created successfully!")
+        login(request, user)
+
+        # Redirect based on role
+        if role=="Admin":
+            return redirect("dashboard")
+        else:
+            return redirect("tech_dashboard")
+
+    return render(request, "register.html")
+
+def logout_view(request):
+    logout(request)
+    return redirect("login")
+
+@login_required
 def dashboard(request):
     total_rooms = LabRoom.objects.count()   
     total_units = ComputerUnit.objects.count()
@@ -228,6 +311,7 @@ def view_unit(request, unit_id):
     }
 
     return render(request, "view_unit.html", context)
+
 def inspection_form(request):
     rooms = LabRoom.objects.all().order_by('room_name')
     selected_lab_id = request.GET.get('lab')
@@ -261,8 +345,7 @@ def inspection_form(request):
         Software.objects.get_or_create(unit=unit, defaults={'os':'-', 'installed_apps':'-'})
 
         # Use a default technician
-        technician, _ = Technician.objects.get_or_create(name="Default Tech", defaults={'email':'tech@example.com'})
-
+        technician = Technician.objects.get(email=request.user.email)
         # Create or get inspection
         inspection, _ = Inspection.objects.get_or_create(
             unit=unit,
@@ -283,7 +366,7 @@ def inspection_form(request):
         messages.success(request, f"Inspection for {unit.asset_tag} recorded successfully.")
         return redirect(f"{reverse('report')}?school_year={period.school_year}")
 
-    return render(request, "inspection.html", {
+    return render(request, "technician/form.html", {
         "rooms": rooms,
         "units": units,
         "equipments": equipments,
@@ -415,8 +498,8 @@ def delete_technician(request, technician_id):
     messages.success(request, f"Technician {technician.name} deleted successfully.")
     return redirect("technicians")
 
-def technician_profile(request, technician_id):
-    technician = get_object_or_404(Technician, id=technician_id)
+def technician_profile(request):
+    technician = Technician.objects.get(email=request.user.email)
     name = technician.name
     email = technician.email
     status = technician.status
@@ -428,3 +511,71 @@ def technician_profile(request, technician_id):
         'status': status
     }
     return render(request, 'technician_profile.html', context)
+
+# TECHNICIAN
+@login_required
+def tech_dashboard(request):
+    technician = Technician.objects.get(email=request.user.email)
+
+    assigned_rooms = LabRoom.objects.filter(
+        computerunit__inspection__technician=technician
+    ).distinct()
+
+    total_labs = assigned_rooms.count()
+
+    total_inspections = Inspection.objects.filter(technician=technician)
+
+    pending_inspections = total_inspections.filter(status='Pending').count()
+    completed_inspections = total_inspections.filter(status='Completed').count()
+
+    context = {
+        "assigned_rooms": assigned_rooms[:5],
+        "total_labs": total_labs,
+        "pending_inspections": pending_inspections,
+        "completed_inspections": completed_inspections,
+    }
+
+    return render(request, 'technician/dashboard.html', context)
+
+def assigned_laboratories(request):
+    technician = Technician.objects.get_or_create(name="Default Tech")
+    # technician = Technician.objects.get(email=request.user.email)
+    assigned_rooms = LabRoom.object.filter(
+        computerunit_inspection__technician=technician
+    ).distinct()
+
+    return render(request, 'technician/assigned_laboratories.html', {
+            'assigned_rooms': assigned_rooms
+        })
+
+def unit_inspections(request, room_id):
+    technician = Technician.objects.get(email=request.user.email)
+    room = get_object_or_404(LabRoom, id=room_id)
+    units = ComputerUnit.objects.filter(room=room)
+
+    inspections = Inspection.objects.filter(
+        technician=technician,
+        unit__in=units
+    )
+
+    inspected_unit_ids = inspections.values_list('unit_id', flat=True)
+
+    context = {
+        'room': room,
+        'units': units,
+        'inspected_unit_ids': inspected_unit_ids
+    }
+
+    return render(request, 'technician/unit_inspection.html', context)
+
+
+def inspection_history(request):
+    technician = Technician.objects.get(email=request.user.email)
+
+    inspections = Inspection.objects.filter(
+        technician=technician
+    ).select_related('unit', 'period').order_by('-date_checked')
+
+    return render(request, 'technician/inspection_history.html', {
+        "inspections": inspections
+    })

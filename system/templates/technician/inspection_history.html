@@ -1,0 +1,107 @@
+{% extends "technician/base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Inspection History</h2>
+        <p class="text-muted small mb-0">Comprehensive log of computer hardware and software audits.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-light border btn-sm px-3"><i class="bi bi-download me-2"></i>Export CSV</button>
+        <button class="btn btn-black btn-sm px-3"><i class="bi bi-printer me-2"></i>Print Report</button>
+    </div>
+</div>
+
+<div class="card p-3 border-0 shadow-sm mb-4">
+    <div class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="small fw-bold text-muted mb-1 text-uppercase">Date Range</label>
+            <input type="date" class="form-control form-control-sm border-0 bg-light">
+        </div>
+        <div class="col-md-3">
+            <label class="small fw-bold text-muted mb-1 text-uppercase">Computer ID</label>
+            <select class="form-select form-select-sm border-0 bg-light">
+                <option>All Systems</option>
+                <option>PC-01</option>
+                <option>LT-04</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="small fw-bold text-muted mb-1 text-uppercase">Health Status</label>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-dark rounded-pill px-3">Healthy</button>
+                <button class="btn btn-sm btn-outline-secondary rounded-pill px-3">Warning</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row g-4 mb-4">
+    <div class="col-md-4 border-end">
+        <small class="text-muted fw-bold text-uppercase">Total Inspections</small>
+        <h3 class="fw-bold mt-1">1,284</h3>
+        <small class="text-dark fw-bold"><i class="bi bi-arrow-up-short"></i> 12% vs last month</small>
+    </div>
+    <div class="col-md-4 border-end">
+        <small class="text-muted fw-bold text-uppercase">Needs Attention</small>
+        <h3 class="fw-bold mt-1">14</h3>
+        <small class="text-muted"><i class="bi bi-exclamation-triangle me-1"></i> Hardware flags detected</small>
+    </div>
+    <div class="col-md-4">
+        <small class="text-muted fw-bold text-uppercase">Compliance Rate</small>
+        <h3 class="fw-bold mt-1">99.2%</h3>
+        <small class="text-muted">Software is 100% synchronized</small>
+    </div>
+</div>
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead class="bg-light text-uppercase" style="font-size: 11px;">
+                <tr>
+                    <th class="ps-4 py-3">Date</th>
+                    <th>Computer</th>
+                    <th>Hardware</th>
+                    <th>Software</th>
+                    <th>Equipment</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="small">
+                    <td class="ps-4 py-3 text-dark fw-bold">May 12, 2026<br><span class="text-muted fw-normal" style="font-size: 10px;">09:45 AM</span></td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="bg-light border p-1 me-2 rounded"><i class="bi bi-pc-display"></i></div>
+                            <span class="fw-bold">PC-01</span>
+                        </div>
+                    </td>
+                    <td><span class="border-start border-3 border-dark ps-2">Good</span></td>
+                    <td><span class="badge bg-dark rounded-0 px-2">UPDATED</span></td>
+                    <td>Good</td>
+                    <td class="text-muted italic">All OK</td>
+                </tr>
+                <tr class="small">
+                    <td class="ps-4 py-3 text-dark fw-bold">May 08, 2026<br><span class="text-muted fw-normal" style="font-size: 10px;">11:15 AM</span></td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="bg-light border p-1 me-2 rounded"><i class="bi bi-laptop"></i></div>
+                            <span class="fw-bold">LT-04</span>
+                        </div>
+                    </td>
+                    <td><span class="border-start border-3 border-secondary ps-2 text-muted">Good</span></td>
+                    <td><span class="badge border border-dark text-dark rounded-0 px-2">PENDING</span></td>
+                    <td>Good</td>
+                    <td class="text-dark fw-bold">Security patch required</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="card-footer bg-white py-3 px-4 d-flex justify-content-between align-items-center">
+        <small class="text-muted">Showing 1-3 of 1,284 entries</small>
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item active"><a class="page-link bg-dark border-dark" href="#">1</a></li>
+            <li class="page-item"><a class="page-link text-dark border-0" href="#">2</a></li>
+            <li class="page-item"><a class="page-link text-dark border-0" href="#">3</a></li>
+        </ul>
+    </div>
+</div>
+{% endblock content %}
