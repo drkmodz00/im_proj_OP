@@ -5,36 +5,29 @@ urlpatterns = [
     path('', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
     path('logout/', views.logout_view, name='logout'),
-    
-    # admin side
-    path('dashboard', views.dashboard, name='dashboard'),
+
+    path('dashboard/', views.dashboard, name='dashboard'),
     path('room/<int:room_id>/', views.room_detail, name='room'),
+
     path('laboratory/', views.laboratory, name='laboratory'),
-    path('report/', views.report, name='report'),
-    path('technicians/', views.technician_list, name='technicians'),
+    path('add-lab/', views.add_laboratory, name='add_laboratory'),
+    path('delete-lab/<int:room_id>/', views.delete_laboratory, name='delete_laboratory'),
 
-    path('report/room/<int:room_id>/details/', views.view_inspection_details, name='view_inspection_details'),
-    path('report/room/<int:room_id>/delete/', views.delete_inspections_by_room, name='delete_inspections_by_room'),
-   
-    
     path('unit/<int:unit_id>/', views.view_unit, name='view_unit'),
+    path('add-unit/', views.add_unit, name='add_unit'),
+    path('delete-unit/<int:unit_id>/', views.delete_unit, name='delete_unit'),
 
+    path('report/', views.report, name='report'),
+    path('view-inspection/', views.view_inspection, name='view_inspection'),
+    path('add-inspection/', views.add_inspection, name='add_inspection'),
+    path('edit-inspection/<int:id>/', views.edit_inspection, name='edit_inspection'),
+    path('delete-inspection/<int:id>/', views.delete_inspection, name='delete_inspection'),
 
-    path("add-unit/", views.add_unit, name="add_unit"),
-    path("delete-unit/<int:unit_id>/", views.delete_unit, name="delete_unit"),
+    path('technicians/', views.technician_list, name='technicians'),
+    path('delete-technician/<int:id>/', views.delete_technician, name='delete_technician'),
 
-    path("add-technician/", views.add_technician, name="add_technician"),
-    path("delete-technician/<int:technician_id>/", views.delete_technician, name="delete_technician"),
-    path("edit-technician/<int:technician_id>/", views.edit_technician, name="edit_technician"),
-    path('technician-profile/<int:technician_id>/', views.technician_profile, name='technician_profile'),
-
-         
-    # technician
-
-    path("tech-dashboard/", views.tech_dashboard, name="tech_dashboard"),
-    path("assigned-laboratories/", views.assigned_laboratories, name="assigned_laboratories"),
+    path('tech-dashboard/', views.tech_dashboard, name='tech_dashboard'),
+    path('assigned-laboratories/', views.assigned_laboratories, name='assigned_laboratories'),
     path('inspection/', views.inspection_form, name='inspection_form'),
-    path("inspection-history/", views.inspection_history, name="inspection_history"),
-
+    path('history/', views.inspection_history, name='inspection_history'),
 ]
-

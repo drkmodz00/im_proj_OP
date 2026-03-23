@@ -1,597 +1,351 @@
-from urllib import request
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import *
 from datetime import date
 from django.db.models import Prefetch, IntegerField, Q, Count, Max
 from django.db.models.functions import Cast, Substr
-from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
+
+# =========================
+# AUTH
+# =========================
+
 def login_view(request):
     if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
+        user = authenticate(
+            request,
+            username=request.POST.get("username"),
+            password=request.POST.get("password")
+        )
 
-        user = authenticate(request, username=username, password=password)
-
-        if user is not None:
+        if user:
             login(request, user)
-            try:
-                tech = Technician.objects.get(user=user)
-                if tech.role == "Admin":
-                    return redirect("dashboard")
-                else:
-                    return redirect("tech_dashboard")
-            except Technician.DoesNotExist:
-                messages.error(request,"User has no assigned role")
-                return redirect("login")
-        else:
-            messages.error(request,"Invalid username or password")
-            return redirect("login")
+            tech = Technician.objects.filter(user=user).first()
 
-    return render(request,"login.html")
+            if tech and tech.role == "Admin":
+                return redirect("dashboard")
+            elif tech:
+                return redirect("tech_dashboard")
+
+            messages.error(request, "No role assigned")
+        else:
+            messages.error(request, "Invalid login")
+
+        return redirect("login")
+
+    return render(request, "login.html")
+
 
 def register_view(request):
     if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-        password2 = request.POST.get("password2")
-        first_name = request.POST.get("first_name")
-        last_name = request.POST.get("last_name")
-        email = request.POST.get("email")
-        role = request.POST.get("role")  # Admin or Technician
-        specialty = request.POST.get("specialty", "")
-
-        # Validate passwords match
-        if password != password2:
-            messages.error(request, "Passwords do not match.")
+        if request.POST.get("password") != request.POST.get("password2"):
+            messages.error(request, "Passwords do not match")
             return redirect("register")
 
-        # Check if username exists
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already exists.")
+        if User.objects.filter(username=request.POST.get("username")).exists():
+            messages.error(request, "Username exists")
             return redirect("register")
 
-        # Create User
+        role = request.POST.get("role")
+
         user = User.objects.create_user(
-            username=username,
-            password=password,
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            is_superuser=True if role=="Admin" else False,
-            is_staff=True if role=="Admin" else False
+            username=request.POST.get("username"),
+            password=request.POST.get("password"),
+            first_name=request.POST.get("first_name"),
+            last_name=request.POST.get("last_name"),
+            email=request.POST.get("email"),
+            is_staff=(role == "Admin"),
+            is_superuser=(role == "Admin")
         )
 
-        # Create Technician profile
         Technician.objects.create(
             user=user,
             role=role,
-            specialty=specialty,
-            status='Active'
+            name=f"{user.first_name} {user.last_name}",
+            email=user.email,
+            status="Active"
         )
 
-        messages.success(request, f"{role} account created successfully!")
         login(request, user)
-
-        # Redirect based on role
-        if role=="Admin":
-            return redirect("dashboard")
-        else:
-            return redirect("tech_dashboard")
+        return redirect("dashboard" if role == "Admin" else "tech_dashboard")
 
     return render(request, "register.html")
+
 
 def logout_view(request):
     logout(request)
     return redirect("login")
 
+
+# =========================
+# DASHBOARD
+# =========================
+
 @login_required
 def dashboard(request):
-    total_rooms = LabRoom.objects.count()   
-    total_units = ComputerUnit.objects.count()
-    total_inspections = Inspection.objects.count()
-
-    rooms_qs = LabRoom.objects.all().order_by('room_name')
-    paginator = Paginator(rooms_qs, 10)
-    page_number = request.GET.get('page', 1)
-    rooms = paginator.get_page(page_number)
+    rooms = LabRoom.objects.all().order_by('room_name')
+    paginator = Paginator(rooms, 10)
 
     return render(request, 'dashboard/dashboard.html', {
-        'total_rooms': total_rooms,
-        'total_units': total_units,
-        'total_inspections': total_inspections,
-        'rooms': rooms,
+        'total_rooms': LabRoom.objects.count(),
+        'total_units': ComputerUnit.objects.count(),
+        'total_inspections': Inspection.objects.count(),
+        'rooms': paginator.get_page(request.GET.get('page', 1)),
     })
+
 
 @login_required
 def room_detail(request, room_id):
-    # Fetch the room
-    room = get_object_or_404(LabRoom, pk=room_id)
-    
-    # Fetch units in this room
-    units_list = ComputerUnit.objects.filter(room=room).annotate(
+    room = get_object_or_404(LabRoom, id=room_id)
+
+    units = ComputerUnit.objects.filter(room=room).annotate(
         station_num=Cast(Substr('asset_tag', 45), IntegerField())
     ).order_by('station_num')
-    
-    # Pagination (10 units per page)
-    paginator = Paginator(units_list, 10)
-    page_number = request.GET.get('page')
-    units = paginator.get_page(page_number)
 
-    # Summary counts
-    total_units = units_list.count()
-    total_working = units_list.filter(status='Working').count()
-    total_defective = units_list.filter(status='Defective').count()
-    total_maintenance = units_list.filter(status='Maintenance').count()
+    paginator = Paginator(units, 10)
 
-    context = {
+    return render(request, 'dashboard/room_detail.html', {
         'room': room,
-        'units': units,
-        'total_units': total_units,
-        'total_working': total_working,
-        'total_defective': total_defective,
-        'total_maintenance': total_maintenance,
-    }
+        'units': paginator.get_page(request.GET.get('page')),
+        'total_units': units.count(),
+        'total_working': units.filter(status='Working').count(),
+        'total_defective': units.filter(status='Defective').count(),
+        'total_maintenance': units.filter(status='Maintenance').count(),
+    })
 
-    return render(request, 'dashboard/room_detail.html', context)
+
+# =========================
+# LABORATORY CRUD
+# =========================
 
 @login_required
 def laboratory(request):
-    if request.method == "POST":
-        room_name = request.POST.get("room_name")
-        location = request.POST.get("location")
-        capacity = request.POST.get("capacity") or 0
+    rooms = LabRoom.objects.all().order_by('room_name')
+    paginator = Paginator(rooms, 10)
 
-        if room_name and location:
-            LabRoom.objects.create(
-                room_name=room_name,
-                location=location,
-                capacity=capacity
-            )
-            messages.success(request, f"Lab '{room_name}' added successfully.")
-        else:
-            messages.error(request, "Room name and location are required.")
+    return render(request, 'dashboard/laboratory.html', {
+        'rooms': paginator.get_page(request.GET.get('page', 1))
+    })
 
-        return redirect("laboratory")  # Stay on the same page
-
-    delete_id = request.GET.get("delete")
-    if delete_id:
-        room = get_object_or_404(LabRoom, id=delete_id)
-        room.delete()
-        messages.success(request, f"Lab '{room.room_name}' deleted successfully.")
-        return redirect("laboratory")
-
-    rooms_qs = LabRoom.objects.all().order_by('room_name')
-    paginator = Paginator(rooms_qs, 10)
-    page_number = request.GET.get('page', 1)
-    rooms = paginator.get_page(page_number)
-
-    return render(request, 'dashboard/laboratory.html', {'rooms': rooms})
 
 @login_required
-def report(request):
-    school_year = request.GET.get('school_year')
+def add_laboratory(request):
+    if request.method == "POST":
+        LabRoom.objects.create(
+            room_name=request.POST.get("room_name"),
+            location=request.POST.get("location"),
+            capacity=request.POST.get("capacity") or 0
+        )
+        messages.success(request, "Lab added")
 
-    # Base rooms query
-    rooms = LabRoom.objects.all().order_by('room_name')
-
-    if school_year:
-        rooms = rooms.filter(
-            computerunit__inspection__period__school_year=school_year
-        ).distinct()
-
-    # Prefetch inspections for units
-    inspections_prefetch = Prefetch(
-        'inspection',
-        queryset=Inspection.objects.select_related('technician', 'period').prefetch_related('rating')
-    )
-
-    rooms = rooms.prefetch_related(
-        Prefetch('computerunit_set', queryset=ComputerUnit.objects.prefetch_related(inspections_prefetch))
-    )
-
-    context = {
-        'rooms': rooms,
-        'school_year': school_year,
-    }
-    return render(request, 'dashboard/report.html', context)
+    return redirect("laboratory")
 
 
+@login_required
+def delete_laboratory(request, room_id):
+    room = get_object_or_404(LabRoom, id=room_id)
+    room.delete()
+    messages.success(request, "Lab deleted")
+    return redirect("laboratory")
+
+@login_required
 def add_unit(request):
     if request.method == "POST":
-        asset_tag = request.POST.get("asset_tag")
-        room_id = request.POST.get("room_id")
-        status = request.POST.get("status") or "Working"
+        room = get_object_or_404(LabRoom, id=request.POST.get("room_id"))
 
-        cpu = request.POST.get("cpu")
-        ram = request.POST.get("ram")
-        gpu = request.POST.get("gpu")
-        storage = request.POST.get("storage")
-
-        os = request.POST.get("os")
-        installed_apps = request.POST.get("installed_apps")
-
-        room = get_object_or_404(LabRoom, id=room_id)
-
-        # 1. Create unit
         unit = ComputerUnit.objects.create(
-            asset_tag=asset_tag,
+            asset_tag=request.POST.get("asset_tag"),
             room=room,
-            status=status
+            status=request.POST.get("status") or "Working"
         )
 
-        # 2. Create hardware and software safely
-        Hardware.objects.get_or_create(unit=unit, defaults={
-            'cpu': cpu or '-', 'ram': ram or '-', 'gpu': gpu or '-', 'storage': storage or '-'
-        })
-        Software.objects.get_or_create(unit=unit, defaults={
-            'os': os or '-', 'installed_apps': installed_apps or '-'
-        })
+        Hardware.objects.create(unit=unit)
+        Software.objects.create(unit=unit)
 
     return redirect("room", room_id=room.id)
 
+
+@login_required
+def view_unit(request, unit_id):
+    unit = get_object_or_404(ComputerUnit, id=unit_id)
+
+    if request.method == "POST":
+
+        # UPDATE
+        if "update" in request.POST:
+            unit.asset_tag = request.POST.get("asset_tag")
+            unit.status = request.POST.get("status")
+            unit.save()
+            messages.success(request, "Updated")
+
+        # DELETE
+        elif "delete" in request.POST:
+            room_id = unit.room.id
+            unit.delete()
+            messages.success(request, "Deleted")
+            return redirect("room", room_id=room_id)
+
+    inspections = Inspection.objects.filter(unit=unit)
+
+    return render(request, "dashboard/view_unit.html", {
+        "unit": unit,
+        "hardware": getattr(unit, 'hardware', None),
+        "software": getattr(unit, 'software', None),
+        "rooms": LabRoom.objects.all(),
+        "inspections": inspections,
+    })
+
+
+@login_required
 def delete_unit(request, unit_id):
     unit = get_object_or_404(ComputerUnit, id=unit_id)
     room_id = unit.room.id
     unit.delete()
     return redirect("room", room_id=room_id)
 
-def view_unit(request, unit_id):
-    unit = get_object_or_404(ComputerUnit, id=unit_id)
 
-    # Safe access (no crash if missing)
-    hardware = getattr(unit, 'hardware', None)
-    software = getattr(unit, 'software', None)
-    all_rooms = LabRoom.objects.all()
+# =========================
+# REPORT
+# =========================
 
-    # ------------------------
-    # HANDLE POST ACTIONS
-    # ------------------------
-    if request.method == "POST":
-
-        # ✅ UPDATE UNIT
-        if "update" in request.POST:
-            unit.asset_tag = request.POST.get("asset_tag", unit.asset_tag)
-            unit.status = request.POST.get("status", unit.status)
-
-            # Change room if provided
-            room_id = request.POST.get("room_id")
-            if room_id:
-                unit.room = get_object_or_404(LabRoom, id=room_id)
-
-            unit.save()
-
-            # Update hardware (create if missing)
-            hardware, _ = Hardware.objects.get_or_create(unit=unit)
-            hardware.cpu = request.POST.get("cpu", hardware.cpu)
-            hardware.ram = request.POST.get("ram", hardware.ram)
-            hardware.gpu = request.POST.get("gpu", hardware.gpu)
-            hardware.storage = request.POST.get("storage", hardware.storage)
-            hardware.save()
-
-            # Update software (create if missing)
-            software, _ = Software.objects.get_or_create(unit=unit)
-            software.os = request.POST.get("os", software.os)
-            software.installed_apps = request.POST.get("installed_apps", software.installed_apps)
-            software.save()
-
-            messages.success(request, f"{unit.asset_tag} updated successfully.")
-            return redirect("room", room_id=unit.room.id)
-
-        # ✅ DELETE UNIT
-        elif "delete" in request.POST:
-            room_id = unit.room.id
-            unit.delete()
-            messages.success(request, "Unit deleted successfully.")
-            return redirect("room", room_id=room_id)
-
-    # ------------------------
-    # FETCH INSPECTIONS (OPTIMIZED)
-    # ------------------------
-    inspections = (
-        Inspection.objects
-        .filter(unit=unit)
-        .select_related('technician', 'period')
-        .prefetch_related('rating')
-        .order_by('-date_checked')
-    )
-    technicians_preview = Technician.objects.filter(status='Active').order_by('name')[:5]
-    # Latest inspection (for UI highlight)
-    latest_inspection = inspections.first()
-    latest_rating = (
-        latest_inspection.rating.first()
-        if latest_inspection else None
-    )
-
-    context = {
-        "unit": unit,
-        "hardware": hardware,
-        "software": software,
-        "rooms": all_rooms,
-        "technicians_preview": technicians_preview,
-
-        # Inspection data
-        "inspections": inspections,
-        "latest_inspection": latest_inspection,
-        "latest_rating": latest_rating,
-    }
-
-    return render(request, "view_unit.html", context)
-
-def view_inspection_details(request, room_id):
+@login_required
+def report(request):
     school_year = request.GET.get('school_year')
-    room = get_object_or_404(LabRoom, id=room_id)
 
-    inspections = Inspection.objects.filter(
-        unit__room=room,
-        period__school_year=school_year
-    ).select_related('unit', 'technician', 'period').prefetch_related('conditionrating_set')
+    rooms = LabRoom.objects.all()
 
-    context = {
-        'room': room,
-        'inspections': inspections,
+    if school_year:
+        rooms = rooms.filter(
+            computerunit__inspections__period__school_year=school_year
+        ).distinct()
+
+    return render(request, 'dashboard/report.html', {
+        'rooms': rooms,
         'school_year': school_year,
-    }
-    return render(request, 'inspection_details.html', context)
-
-def edit_inspection(request, inspection_id):
-    inspection = get_object_or_404(Inspection, id=inspection_id)
-    rating = inspection.conditionrating_set.first()
-    units = ComputerUnit.objects.all()
-    periods = AssessmentPeriod.objects.all()
-
-    if request.method == "POST":
-        inspection.unit_id = request.POST.get("unit_id")
-        inspection.period_id = request.POST.get("period_id")
-        inspection.date_checked = request.POST.get("date_checked")
-        inspection.save()
-
-        rating.hardware_condition = request.POST.get("condition")
-        rating.remarks = request.POST.get("remarks")
-        rating.save()
-
-        messages.success(request, "Inspection updated successfully.")
-        return redirect("report")
-
-    return render(request, "edit_inspection.html", {
-        "inspection": inspection,
-        "rating": rating,
-        "units": units,
-        "periods": periods
     })
 
-def delete_inspections_by_room(request, room_id):
-    if request.method == "POST":
-        school_year = request.GET.get('school_year')
-        room = get_object_or_404(LabRoom, id=room_id)
+    
+    # =========================
+# TECHNICIAN CRUD
+# =========================
 
-        inspections = Inspection.objects.filter(unit__room=room)
-        if school_year:
-            inspections = inspections.filter(period__school_year=school_year)
-
-        count = inspections.count()
-        inspections.delete()
-
-        messages.success(request, f"Deleted {count} inspections for {room.room_name} ({school_year}).")
-    return redirect('report')
-
+@login_required
 def technician_list(request):
-    query = request.GET.get('q', '')
-    status_filter = request.GET.get('status', '')
+    techs = Technician.objects.all()
+    paginator = Paginator(techs, 10)
 
-    technicians_qs = Technician.objects.all()
+    return render(request, 'dashboard/technicians.html', {
+        'technicians': paginator.get_page(request.GET.get('page'))
+    })
 
-    if query:
-        technicians_qs = technicians_qs.filter(
-            Q(name__icontains=query) |
-            Q(email__icontains=query) |
-            Q(specialty__icontains=query)
-        )
-    if status_filter.lower() == 'active':
-        technicians_qs = technicians_qs.filter(status='Active')
-    elif status_filter.lower() == 'inactive':
-        technicians_qs = technicians_qs.filter(status='Inactive')
 
-    paginator = Paginator(technicians_qs.order_by('name'), 10)
-    page_number = request.GET.get('page')
-    technicians = paginator.get_page(page_number)
-
-    # Add initials for avatar circles (e.g., "JD" for "Juan Dela Cruz")
-    for tech in technicians:
-        names = tech.name.split()
-        initials = "".join([n[0] for n in names[:2]]).upper()
-        tech.initials = initials
-
-    context = {
-        'technicians': technicians,
-        'total_technicians': technicians_qs.filter(status='Active').count(),
-    }
-    return render(request, 'technicians.html', context)
-
-def add_technician(request):
-    if request.method == "POST":
-        name = request.POST.get("name")
-        email = request.POST.get("email")
-        status = request.POST.get("status") or "Active"
-
-        Technician.objects.create(
-            name=name,
-            email=email,
-            status=status,
-        )
-        messages.success(request, f"Technician {name} added successfully.")
-    return redirect("technicians")
-
-def edit_technician(request, technician_id):
-    technician = get_object_or_404(Technician, id=technician_id)
-
-    if request.method == "POST":
-        technician.name = request.POST.get("name", technician.name)
-        technician.email = request.POST.get("email", technician.email)
-        technician.status = request.POST.get("status", technician.status)
-        technician.save()
-
-        messages.success(request, f"Technician {technician.name} updated successfully.")
-        return redirect("technicians")
-
-    return render(request, "edit_technician", {"technician": technician})
-
+@login_required
 def delete_technician(request, technician_id):
-    technician = get_object_or_404(Technician, id=technician_id)
-    technician.delete()
-    messages.success(request, f"Technician {technician.name} deleted successfully.")
+    tech = get_object_or_404(Technician, id=technician_id)
+    tech.delete()
+    messages.success(request, "Deleted")
     return redirect("technicians")
 
-def technician_profile(request):
-    technician = Technician.objects.get(email=request.user.email)
-    name = technician.name
-    email = technician.email
-    status = technician.status
 
-    context = {
-        'technician': technician,
-        'name': name,
-        'email': email,
-        'status': status
-    }
-    return render(request, 'technician_profile.html', context)
+# =========================
+# TECHNICIAN SIDE
+# =========================
 
-# TECHNICIAN
 @login_required
 def tech_dashboard(request):
-    technician = Technician.objects.filter(user=request.user).first()
-
-    if not technician:
+    # Get the logged-in technician
+    try:
+        technician = Technician.objects.get(user=request.user)
+    except Technician.DoesNotExist:
         messages.error(request, "Technician profile not found.")
         return redirect("login")
 
-    # Assigned labs (based on inspections)
+    # Labs where this technician has inspections
     assigned_rooms = LabRoom.objects.filter(
-        computerunit__inspection__technician=technician
+        computerunit__inspections__technician=technician
     ).distinct()
 
-    # Annotate lab stats
+    # Annotate each lab with stats
     assigned_rooms = assigned_rooms.annotate(
         total_units=Count('computerunit', distinct=True),
         working_units=Count('computerunit', filter=Q(computerunit__status='Working')),
-        last_inspected=Max('computerunit__inspection__date_checked')
+        defective_units=Count('computerunit', filter=Q(computerunit__status='Defective')),
+        maintenance_units=Count('computerunit', filter=Q(computerunit__status='Maintenance')),
+        last_inspected=Max('computerunit__inspections__date_checked')
     )
 
-    # Inspection stats
+    # Inspections assigned to this technician
     inspections = Inspection.objects.filter(technician=technician)
 
+    # Counts for dashboard summary
+    pending_count = inspections.filter(status='Pending').count()
+    completed_count = inspections.filter(status='Completed').count()
+
     context = {
+        "technician": technician,
         "assigned_rooms": assigned_rooms,
         "total_labs": assigned_rooms.count(),
-        "pending_inspections": inspections.filter(status='Pending').count(),
-        "completed_inspections": inspections.filter(status='Completed').count(),
+        "pending_inspections": pending_count,
+        "completed_inspections": completed_count,
     }
 
-    return render(request, 'technician/dashboard.html', context)
-
+    return render(request, "technician/dashboard.html", context)        
 @login_required
 def assigned_laboratories(request):
-    technician = get_object_or_404(Technician, user=request.user)
+    tech = get_object_or_404(Technician, user=request.user)
 
-    assigned_rooms = LabRoom.objects.filter(
-        computerunit__inspection__technician=technician
+    rooms = LabRoom.objects.filter(
+        computerunit__inspections__technician=tech
     ).distinct()
 
     return render(request, 'technician/assigned_laboratories.html', {
-        'assigned_rooms': assigned_rooms
+        'assigned_rooms': rooms
     })
 
-def unit_inspections(request, room_id):
-    technician = Technician.objects.get(email=request.user.email)
-    room = get_object_or_404(LabRoom, id=room_id)
-    units = ComputerUnit.objects.filter(room=room)
-
-    inspections = Inspection.objects.filter(
-        technician=technician,
-        unit__in=units
-    )
-
-    inspected_unit_ids = inspections.values_list('unit_id', flat=True)
-
-    context = {
-        'room': room,
-        'units': units,
-        'inspected_unit_ids': inspected_unit_ids
-    }
-
-    return render(request, 'technician/unit_inspection.html', context)
 
 @login_required
 def inspection_form(request):
-    # All labs and periods for dropdowns
     labs = LabRoom.objects.all().order_by('room_name')
     periods = AssessmentPeriod.objects.all().order_by('-date_start')
 
-    # Defaults
-    units = []
-    selected_lab_id = request.GET.get('lab') or request.POST.get('lab')
-    selected_unit_id = request.POST.get('unit')
-    selected_period_id = request.POST.get('period')
+    selected_lab_id = request.POST.get("lab") or request.GET.get("lab")
+    units = ComputerUnit.objects.filter(room_id=selected_lab_id) if selected_lab_id else []
 
-    # Filter units if a lab is selected
-    if selected_lab_id:
-        units = ComputerUnit.objects.filter(room_id=selected_lab_id)
-    else:
-        units = []
+    selected_unit_id = request.POST.get("unit")
+    selected_period_id = request.POST.get("period")
 
     if request.method == "POST":
-        lab_id = request.POST.get("lab")
-        unit_id = request.POST.get("unit")
-        period_id = request.POST.get("period")
-        hardware_condition = request.POST.get("hardware")
-        software_condition = request.POST.get("software")
-        equipment_status = request.POST.get("equip")
-        remarks = request.POST.get("remarks", "")
+        if not selected_unit_id or not selected_period_id:
+            messages.error(request, "Please select a unit and period.")
+            return redirect("inspection_form")
 
-        # Validate selections
-        if not lab_id or not unit_id or not period_id:
-            messages.error(request, "Please select a lab, unit, and period.")
-            return render(request, "technician/form.html", {
-                "labs": labs,
-                "units": units,
-                "periods": periods,
-                "selected_lab_id": int(lab_id) if lab_id else None,
-                "selected_unit_id": int(unit_id) if unit_id else None,
-                "selected_period_id": int(period_id) if period_id else None,
-            })
+        unit = get_object_or_404(ComputerUnit, id=selected_unit_id)
+        period = get_object_or_404(AssessmentPeriod, id=selected_period_id)
+        technician = get_object_or_404(Technician, user=request.user)
 
-        # Get objects safely
-        lab = get_object_or_404(LabRoom, id=lab_id)
-        unit = get_object_or_404(ComputerUnit, id=unit_id)
-        period = get_object_or_404(AssessmentPeriod, id=period_id)
-        technician = Technician.objects.get(user=request.user)
-
-        # Create or update inspection
-        inspection, _ = Inspection.objects.get_or_create(
+        # Create a new inspection every time
+        inspection = Inspection.objects.create(
             unit=unit,
             period=period,
-            defaults={'technician': technician, 'date_checked': date.today()}
+            technician=technician,
+            date_checked=date.today()
         )
 
-        # Create or update condition rating
-        ConditionRating.objects.update_or_create(
+        # Create rating for this inspection
+        ConditionRating.objects.create(
             inspection=inspection,
-            defaults={
-                'hardware_condition': hardware_condition,
-                'software_condition': software_condition,
-                'equipment_status': equipment_status,
-                'remarks': remarks
-            }
+            hardware_condition=request.POST.get("hardware", "-"),
+            software_condition=request.POST.get("software", "-"),
+            remarks=request.POST.get("remarks", "")
         )
 
-        messages.success(request, f"Inspection for {unit.asset_tag} recorded successfully.")
-        return redirect('assigned_laboratories')
+        messages.success(request, f"Inspection for {unit.asset_tag} saved successfully.")
+        return redirect("assigned_laboratories")
 
-    # Render the form
     return render(request, "technician/form.html", {
         "labs": labs,
         "units": units,
@@ -602,12 +356,60 @@ def inspection_form(request):
     })
 
 @login_required
-def inspection_history(request):
+def view_inspection(request):
     inspections = Inspection.objects.select_related(
-        'unit', 'technician', 'period'
-    ).prefetch_related('conditionrating_set').order_by('-date_checked')
+        'unit', 'technician__user', 'period'
+    ).order_by('-date_checked')
 
-    return render(request, 'technician/inspection_history.html', {
-        "inspections": inspections
+    paginator = Paginator(inspections, 10)
+    page_number = request.GET.get('page', 1)
+    inspections_page = paginator.get_page(page_number)
+
+    return render(request, 'dashboard/report.html', {
+        'inspections': inspections_page
     })
 
+@login_required
+def add_inspection(request):
+    if request.method == "POST":
+        form = InspectionForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Inspection added successfully")
+            return redirect("view_inspection")
+    else:
+        form = InspectionForm()
+
+    return render(request, 'dashboard/report.html', {'form': form, 'action': 'Add'})
+
+
+@login_required
+def edit_inspection(request, id):
+    inspection = get_object_or_404(Inspection, id=id)
+    if request.method == "POST":
+        form = InspectionForm(request.POST, instance=inspection)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Inspection updated successfully")
+            return redirect("view_inspection")
+    else:
+        form = InspectionForm(instance=inspection)
+
+    return render(request, 'dashboard/report.html', {'form': form, 'action': 'Edit', 'inspection': inspection})
+
+
+@login_required
+def delete_inspection(request, id):
+    inspection = get_object_or_404(Inspection, id=id)
+    inspection.delete()
+    messages.success(request, "Inspection deleted successfully")
+    return redirect("view_inspection")
+
+@login_required 
+def inspection_history(request): 
+    inspections = Inspection.objects.select_related( 
+        'unit', 
+        'technician', 
+        'period' 
+    ).prefetch_related('rating').order_by('-date_checked') 
+    return render(request, 'technician/inspection_history.html', { "inspections": inspections })

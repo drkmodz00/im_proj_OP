@@ -1,14 +1,16 @@
 {% extends "technician/base.html" %}
 {% block content %}
 
-<form method="post" action="{% url 'inspection_form' %}">
+<form method="post">
     {% csrf_token %}
 
     <!-- Assessment Period -->
     <div class="mb-3">
         <label class="form-label fw-bold">Assessment Period</label>
         <select class="form-select" name="period" required>
-            <option value="" disabled selected>Select Period</option>
+            <option value="" disabled {% if not selected_period_id %}selected{% endif %}>
+                Select Period
+            </option>
             {% for p in periods %}
                 <option value="{{ p.id }}" {% if p.id == selected_period_id %}selected{% endif %}>
                     {{ p.semester }} {{ p.school_year }}
@@ -17,11 +19,16 @@
         </select>
     </div>
 
-    <!-- Laboratory Dropdown -->
+    <!-- Laboratory Dropdown (GET, not POST) -->
     <div class="mb-3">
         <label class="form-label fw-bold">Laboratory</label>
-        <select class="form-select" name="lab" required onchange="if(this.value) this.form.submit()">
-            <option value="" disabled selected>Select Laboratory</option>
+        <select class="form-select" name="lab"
+            onchange="window.location.href='?lab=' + this.value">
+            
+            <option value="" disabled {% if not selected_lab_id %}selected{% endif %}>
+                Select Laboratory
+            </option>
+
             {% for lab in labs %}
                 <option value="{{ lab.id }}" {% if lab.id == selected_lab_id %}selected{% endif %}>
                     {{ lab.room_name }}
@@ -35,7 +42,9 @@
     <div class="mb-3">
         <label class="form-label fw-bold">Unit / Computer</label>
         <select class="form-select" name="unit" required>
-            <option value="" disabled selected>Select Unit</option>
+            <option value="" disabled {% if not selected_unit_id %}selected{% endif %}>
+                Select Unit
+            </option>
             {% for unit in units %}
                 <option value="{{ unit.id }}" {% if unit.id == selected_unit_id %}selected{% endif %}>
                     {{ unit.asset_tag }}
@@ -76,10 +85,10 @@
     <!-- Remarks -->
     <div class="mb-3">
         <label class="form-label fw-bold">Remarks</label>
-        <textarea class="form-control" name="remarks" rows="4" placeholder="Add any remarks...">{{ request.POST.remarks }}</textarea>
+        <textarea class="form-control" name="remarks" rows="4">{{ request.POST.remarks }}</textarea>
     </div>
 
-    <button type="submit" class="btn btn-black">Submit Inspection</button>
+    <button type="submit" class="btn btn-dark">Submit Inspection</button>
 </form>
 
 {% endblock %}

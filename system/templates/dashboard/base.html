@@ -90,6 +90,13 @@
                 </a>
             </li>
 
+            <li class="nav-item">
+                <a href="{% url 'technicians' %}" 
+                class="nav-link {% if request.resolver_match.url_name == 'inspection_form' %}active{% endif %}">
+                <i class="bi bi-pc-display me-3"></i> User Management
+                </a>
+            </li>
+
         </ul>
 
         <div class="mt-auto px-4">

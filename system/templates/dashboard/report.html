@@ -8,7 +8,7 @@
             <h2 class="fw-bold mb-0">Inspection Reports</h2>
             <p class="text-muted small">Archived audit logs by academic year.</p>
         </div>
-        
+
         <form method="GET" class="d-flex gap-2 bg-white p-2 rounded shadow-sm border">
             <div class="input-group input-group-sm">
                 <span class="input-group-text bg-transparent border-0 text-muted small fw-bold">YEAR:</span>
@@ -19,68 +19,63 @@
         </form>
     </div>
 
+    <!-- Add/Edit form -->
+    {% if action %}
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h5>{{ action }} Inspection</h5>
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-primary">{{ action }}</button>
+                <a href="{% url 'view_inspection' %}" class="btn btn-secondary">Back</a>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- List inspections -->
     <div class="row">
-        {% for room in rooms %}
-        <div class="col-12 mb-4">
-            <div class="card border-0 shadow-sm overflow-hidden">
-                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center">
-                        <div class="bg-dark me-2" style="width: 4px; height: 20px;"></div>
-                        <h5 class="fw-bold mb-0">{{ room.room_name }}</h5>
-                        <span class="badge bg-light text-dark border ms-3 small">{{ school_year }}</span>
+        {% for inspection in inspections %}
+        <div class="col-12 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1 fw-bold">Unit: {{ inspection.unit.asset_tag }}</h6>
+                        <small class="text-muted">
+                            Technician: {{ inspection.technician.user.username }} | Checked on {{ inspection.date_checked|date:"M d, Y" }}
+                        </small>
                     </div>
-                </div>
-
-                <div class="list-group list-group-flush">
-                    {% for unit in room.computerunit_set.all %}
-                        {% if unit.inspection %}
-                        {% with insp=unit.inspection %}
-                        <div class="list-group-item d-flex justify-content-between align-items-center py-3 px-4">
-                            <div class="d-flex align-items-center">
-                                <div class="me-4 text-center">
-                                    <small class="text-muted d-block text-uppercase fw-bold" style="font-size: 9px;">Checked on</small>
-                                    <span class="fw-bold">{{ insp.date_checked|date:"M d" }}</span>
-                                </div>
-                                <div>
-                                    <h6 class="mb-0 fw-bold">Unit: {{ unit.asset_tag }}</h6>
-                                    <small class="text-muted">Status: Fully Audited</small>
-                                </div>
-                            </div>
-
-                            <div class="d-flex gap-2">
-                                <a href="{% url 'view_inspection_details' room.id %}" 
-                                   class="btn btn-sm btn-outline-dark px-3">
-                                    <i class="bi bi-eye me-1"></i> View Report
-                                </a>
-
-                                <form action="{% url 'delete_inspections_by_room' room.id %}" 
-                                      method="POST" style="display:inline;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-light border"
-                                            onclick="return confirm('Archive this inspection report?');">
-                                        <i class="bi bi-trash text-muted"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                        {% endwith %}
-                        {% endif %}
-                    {% empty %}
-                        <div class="p-4 text-center text-muted">
-                            <small>No units found for this laboratory.</small>
-                        </div>
-                    {% endfor %}
-                </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'edit_inspection' inspection.id %}" class="btn btn-sm btn-outline-dark">Edit</a>
+                        <form method="POST" action="{% url 'delete_inspection' inspection.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-light border"
+                                    onclick="return confirm('Archive this inspection report?');">Delete</button>
+                        </form>
+                    </div>
+                </div>            
             </div>
         </div>
         {% empty %}
         <div class="col-12">
-            <div class="card p-5 border-0 shadow-sm text-center">
+            <div class="card p-5 text-center shadow-sm">
                 <i class="bi bi-file-earmark-x fs-1 text-muted mb-3"></i>
-                <h5 class="text-muted">No reports generated for the year {{ school_year }}</h5>
+                <h5 class="text-muted">No inspection reports found.</h5>
             </div>
         </div>
         {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-center mt-4">
+        {% if inspections.has_previous %}
+            <a href="?page={{ inspections.previous_page_number }}" class="btn btn-outline-secondary btn-sm me-2">Previous</a>
+        {% endif %}
+        <span class="align-self-center">Page {{ inspections.number }} of {{ inspections.paginator.num_pages }}</span>
+        {% if inspections.has_next %}
+            <a href="?page={{ inspections.next_page_number }}" class="btn btn-outline-secondary btn-sm ms-2">Next</a>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

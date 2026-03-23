@@ -1,9 +1,12 @@
 {% extends "technician/base.html" %}
 {% block content %}
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h2 class="fw-bold mb-1">Inspection History</h2>
-        <p class="text-muted small mb-0">Comprehensive log of computer hardware and software audits.</p>
+        <p class="text-muted small mb-0">
+            Comprehensive log of computer hardware and software audits.
+        </p>
     </div>
 </div>
 
@@ -16,79 +19,102 @@
                     <th>Computer</th>
                     <th>Hardware</th>
                     <th>Software</th>
-                    <th>Equipment</th>
                     <th>Remarks</th>
                 </tr>
             </thead>
+
             <tbody>
                 {% for inspection in inspections %}
-                    {% with rating=inspection.conditionrating_set.first %}
-                    <tr class="small">
-                        <td class="ps-4 py-3 text-dark fw-bold">
-                            {{ inspection.date_checked|date:"M d, Y" }}<br>
-                            <span class="text-muted fw-normal" style="font-size: 10px;">
-                                {{ inspection.date_checked|time:"h:i A" }}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="bg-light border p-1 me-2 rounded">
-                                    {% if "pc" in inspection.unit.asset_tag|lower %}
-                                        <i class="bi bi-pc-display"></i>
-                                    {% else %}
-                                        <i class="bi bi-laptop"></i>
-                                    {% endif %}                                
-                                </div>
-                                <span class="fw-bold">{{ inspection.unit.asset_tag }}</span>
-                            </div>
-                        </td>
-                        <td>
-                            {% if rating %}
-                                <span class="border-start border-3 ps-2 {% if rating.hardware_condition == 'Good' %}border-dark{% else %}border-secondary text-muted{% endif %}">
-                                    {{ rating.hardware_condition }}
-                                </span>
-                            {% else %}
-                                <span class="text-muted">N/A</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if rating %}
-                                {% if rating.software_condition == "Up-to-date" %}
-                                    <span class="badge bg-dark rounded-0 px-2">UPDATED</span>
+                
+                {% with rating=inspection.rating.first %}
+                <tr class="small">
+
+                    <!-- DATE -->
+                    <td class="ps-4 py-3 text-dark fw-bold">
+                        {{ inspection.date_checked|date:"M d, Y" }}<br>
+                        <span class="text-muted fw-normal" style="font-size: 10px;">
+                            {{ inspection.date_checked|time:"h:i A" }}
+                        </span>
+                    </td>
+
+                    <!-- COMPUTER -->
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="bg-light border p-1 me-2 rounded">
+                                {% if "pc" in inspection.unit.asset_tag|lower %}
+                                    <i class="bi bi-pc-display"></i>
                                 {% else %}
-                                    <span class="badge border border-dark text-dark rounded-0 px-2">PENDING</span>
+                                    <i class="bi bi-laptop"></i>
                                 {% endif %}
+                            </div>
+                            <span class="fw-bold">{{ inspection.unit.asset_tag }}</span>
+                        </div>
+                    </td>
+
+                    <!-- HARDWARE -->
+                    <td>
+                        {% if rating %}
+                            {% if rating.hardware_condition == "Good" %}
+                                <span class="badge bg-success">Good</span>
+                            {% elif rating.hardware_condition == "Fair" %}
+                                <span class="badge bg-warning text-dark">Fair</span>
                             {% else %}
-                                <span class="text-muted">N/A</span>
+                                <span class="badge bg-danger">Poor</span>
                             {% endif %}
-                        </td>
-                        <td>
-                            {% if rating %}
-                                {{ rating.equipment_status }}
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- SOFTWARE -->
+                    <td>
+                        {% if rating %}
+                            {% if rating.software_condition == "Up-to-date" %}
+                                <span class="badge bg-success">Updated</span>
                             {% else %}
-                                N/A
+                                <span class="badge bg-secondary">Outdated</span>
                             {% endif %}
-                        </td>
-                        <td class="{% if rating and rating.remarks %}text-dark fw-bold{% else %}text-muted italic{% endif %}">
-                            {% if rating and rating.remarks %}{{ rating.remarks }}{% else %}No remarks{% endif %}
-                        </td>
-                    </tr>
-                    {% endwith %}
+                        {% else %}
+                            <span class="text-muted">N/A</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- REMARKS -->
+                    <td>
+                        {% if rating and rating.remarks %}
+                            <span class="text-dark fw-bold">{{ rating.remarks }}</span>
+                        {% else %}
+                            <span class="text-muted fst-italic">No remarks</span>
+                        {% endif %}
+                    </td>
+
+                </tr>
+                {% endwith %}
+
                 {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-center text-muted">No inspection records found.</td>
-                    </tr>
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        No inspection records found.
+                    </td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 
+    <!-- FOOTER -->
     <div class="card-footer bg-white py-3 px-4 d-flex justify-content-between align-items-center">
-        <small class="text-muted">Showing 1-{{ inspections|length }} of {{ inspections|length }} entries</small>
-        <!-- Pagination placeholder -->
+        <small class="text-muted">
+            Showing {{ inspections|length }} entries
+        </small>
+
+        <!-- Simple Pagination Placeholder -->
         <ul class="pagination pagination-sm mb-0">
-            <li class="page-item active"><a class="page-link bg-dark border-dark" href="#">1</a></li>
+            <li class="page-item active">
+                <a class="page-link bg-dark border-dark" href="#">1</a>
+            </li>
         </ul>
     </div>
 </div>
+
 {% endblock content %}

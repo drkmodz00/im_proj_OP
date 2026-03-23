@@ -1,4 +1,4 @@
-
+from django.utils import timezone
 from datetime import date
 from django.db import models
 from django.forms import ValidationError
@@ -103,12 +103,15 @@ class Inspection(models.Model):
         ('Completed', 'Completed'),
     ]
 
-    unit = models.ForeignKey(ComputerUnit, on_delete=models.CASCADE, related_name='inspection')
+    unit = models.ForeignKey(ComputerUnit, on_delete=models.CASCADE, related_name='inspections')
     technician = models.ForeignKey(Technician, on_delete=models.CASCADE)
     period = models.ForeignKey(AssessmentPeriod, on_delete=models.CASCADE)
     date_checked = models.DateField(auto_now_add=True)
-
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+
+    created_at = models.DateTimeField(default=timezone.now)    
+    def __str__(self):
+        return f"{self.unit.asset_tag} - {self.technician.name} ({self.period})"
 
 class ConditionRating(models.Model):
     inspection = models.ForeignKey(Inspection, on_delete=models.CASCADE, related_name='rating')
