@@ -113,27 +113,6 @@
                     {% endif %}
                 </div>
 
-                <div class="card border-0 shadow-sm p-4 mb-4">
-                    <h6 class="text-muted fw-bold text-uppercase mb-3" style="font-size: 11px;">
-                        <i class="bi bi-person-badge me-2"></i>Operational Staff
-                    </h6>
-                    <div class="list-group list-group-flush mb-3" style="max-height: 180px; overflow-y: auto;">
-                        {% for tech in technicians_preview %}
-                        <div class="list-group-item px-0 bg-transparent">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="fw-bold small">{{ tech.name }}</div>
-                                    <div class="text-muted" style="font-size: 10px;">{{ tech.email }}</div>
-                                </div>
-                                <span class="badge {% if tech.status == 'Active' %}bg-dark{% else %}bg-light text-muted border{% endif %} pt-1" style="font-size: 8px;">
-                                    {{ tech.status|upper }}
-                                </span>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    <a href="{% url 'technicians' %}" class="btn btn-sm btn-light border w-100 text-uppercase fw-bold" style="font-size: 10px;">Directory</a>
-                </div>
 
                 <div class="card border-0 shadow-sm p-4">
                     <h6 class="text-muted fw-bold text-uppercase mb-3" style="font-size: 11px;">

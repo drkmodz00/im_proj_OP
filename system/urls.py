@@ -15,12 +15,10 @@ urlpatterns = [
 
     path('unit/<int:unit_id>/', views.view_unit, name='view_unit'),
     path('add-unit/', views.add_unit, name='add_unit'),
-    path('delete-unit/<int:unit_id>/', views.delete_unit, name='delete_unit'),
+    # path('delete-unit/<int:unit_id>/', views.delete_unit, name='delete_unit'),
 
     path('report/', views.report, name='report'),
-    path('view-inspection/', views.view_inspection, name='view_inspection'),
-    path('add-inspection/', views.add_inspection, name='add_inspection'),
-    path('edit-inspection/<int:id>/', views.edit_inspection, name='edit_inspection'),
+    path('inspection-detail<int:room_id>/', views.inspection_detail, name='view_inspection'),
     path('delete-inspection/<int:id>/', views.delete_inspection, name='delete_inspection'),
 
     path('technicians/', views.technician_list, name='technicians'),
@@ -29,5 +27,7 @@ urlpatterns = [
     path('tech-dashboard/', views.tech_dashboard, name='tech_dashboard'),
     path('assigned-laboratories/', views.assigned_laboratories, name='assigned_laboratories'),
     path('inspection/', views.inspection_form, name='inspection_form'),
+    path('add-inspection/', views.add_inspection, name='add_inspection'),
+
     path('history/', views.inspection_history, name='inspection_history'),
 ]

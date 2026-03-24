@@ -89,7 +89,7 @@
 
                     <!-- ACTION -->
                     <td class="pe-4 text-end">
-                        <a href="{% url 'inspection_form' info.lab.id %}" class="btn btn-dark btn-sm px-4">
+                        <a href="{% url 'inspection_form' %}?lab={{ info.lab.id }}" class="btn btn-dark btn-sm px-4">
                             Start Inspection
                         </a>
                     </td>

@@ -1,8 +1,11 @@
 {% extends "dashboard/base.html" %}
+
 {% block title %}{{ room.room_name }} Details{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-4 mt-2">
+
+    <!-- HEADER -->
     <div class="d-flex justify-content-between align-items-start mb-4">
         <div class="d-flex align-items-center">
             <button class="btn btn-link text-dark p-0 me-3" onclick="history.back()">
@@ -10,14 +13,14 @@
             </button>
             <div>
                 <h2 class="fw-bold mb-0">{{ room.room_name }}</h2>
-                <small class="text-muted text-uppercase fw-bold" style="font-size: 11px; letter-spacing: 1px;">
+                <small class="text-muted text-uppercase fw-bold" style="font-size: 11px;">
                     <i class="bi bi-geo-alt-fill me-1"></i>{{ room.location }} | Information Technology Lab
                 </small>
             </div>
         </div>
 
         <div class="d-flex gap-2">
-            <button class="btn btn-black px-4" data-bs-toggle="modal" data-bs-target="#addUnitModal">
+            <button class="btn btn-dark px-4" data-bs-toggle="modal" data-bs-target="#addUnitModal">
                 <i class="bi bi-plus-lg me-2"></i>Add Unit
             </button>
             <button class="btn btn-outline-danger px-3 border-0" data-bs-toggle="modal" data-bs-target="#deleteLabModal">
@@ -26,114 +29,160 @@
         </div>
     </div>
 
+    <!-- STATS -->
     <div class="row g-3 mb-4">
         <div class="col-md-3">
             <div class="card border-0 shadow-sm p-3">
-                <small class="text-muted fw-bold text-uppercase" style="font-size: 10px;">Total Units</small>
+                <small class="text-muted text-uppercase">Total Units</small>
                 <h3 class="fw-bold mb-0">{{ total_units }}</h3>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card border-0 shadow-sm p-3 border-start border-4 border-dark">
-                <small class="text-muted fw-bold text-uppercase" style="font-size: 10px;">Working</small>
+                <small class="text-muted text-uppercase">Working</small>
                 <h3 class="fw-bold mb-0">{{ total_working }}</h3>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card border-0 shadow-sm p-3 border-start border-4 border-secondary">
-                <small class="text-muted fw-bold text-uppercase" style="font-size: 10px;">Maintenance</small>
+                <small class="text-muted text-uppercase">Maintenance</small>
                 <h3 class="fw-bold mb-0">{{ total_maintenance }}</h3>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card border-0 shadow-sm p-3 bg-light">
-                <small class="text-dark fw-bold text-uppercase" style="font-size: 10px;">Defective</small>
+                <small class="text-dark text-uppercase">Defective</small>
                 <h3 class="fw-bold mb-0">{{ total_defective }}</h3>
             </div>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm overflow-hidden">
+    <!-- UNITS TABLE -->
+    <div class="card border-0 shadow-sm overflow-hidden mb-4">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light">
-                    <tr class="text-muted text-uppercase" style="font-size: 11px; letter-spacing: 0.5px;">
-                        <th class="py-3 px-4">Asset Tag</th>
-                        <th class="py-3">Status</th>
-                        <th class="py-3">CPU / Processor</th>
-                        <th class="py-3">RAM</th>
-                        <th class="py-3">Storage</th>
-                        <th class="py-3 px-4 text-end">Action</th>
+                    <tr class="text-muted text-uppercase small">
+                        <th class="px-4">Asset Tag</th>
+                        <th>Status</th>
+                        <th>CPU</th>
+                        <th>RAM</th>
+                        <th>Storage</th>
+                        <th class="text-end px-4">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for unit in units %}
                     <tr>
-                        <td class="py-3 px-4">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-pc me-2 text-dark"></i>
-                                <span class="fw-bold">{{ unit.asset_tag }}</span>
-                            </div>
-                        </td>
-
+                        <td class="px-4 fw-bold">{{ unit.asset_tag }}</td>
                         <td>
                             {% if unit.status == 'Working' %}
-                                <span class="badge bg-dark rounded-pill px-3 py-2">WORKING</span>
+                                <span class="badge bg-dark">WORKING</span>
                             {% elif unit.status == 'Defective' %}
-                                <span class="badge border border-dark text-dark rounded-pill px-3 py-2">DEFECTIVE</span>
+                                <span class="badge bg-danger">DEFECTIVE</span>
                             {% elif unit.status == 'Maintenance' %}
-                                <span class="badge bg-light text-dark border rounded-pill px-3 py-2">SERVICE</span>
-                            {% else %}
-                                <span class="badge bg-white text-muted border rounded-pill px-3 py-2 opacity-50">{{ unit.status }}</span>
+                                <span class="badge bg-secondary">SERVICE</span>
                             {% endif %}
                         </td>
-
-                        <td class="small fw-semibold">{{ unit.hardware.cpu|default:"---" }}</td>
-                        <td class="small">{{ unit.hardware.ram|default:"---" }}</td>
-                        <td class="small text-muted">{{ unit.hardware.storage|default:"---" }}</td>
-
-                        <td class="py-3 px-4 text-end">
-                            <a href="{% url 'view_unit' unit.id %}" class="btn btn-sm btn-outline-dark px-3">
+                        <td>{{ unit.hardware.cpu|default:"---" }}</td>
+                        <td>{{ unit.hardware.ram|default:"---" }}</td>
+                        <td>{{ unit.hardware.storage|default:"---" }}</td>
+                        <td class="text-end px-4">
+                            <a href="{% url 'view_unit' unit.id %}" class="btn btn-sm btn-outline-dark">
                                 View Specs
                             </a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="6" class="text-center py-5 text-muted">
-                            <i class="bi bi-hdd-stack fs-2 d-block mb-2"></i>
-                            No units registered in this laboratory.
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-        
-        <div class="card-footer bg-white border-top py-3">
-            {% include "dashboard/pagination.html" with page_obj=units %}
+    </div>
+
+    <!-- INSPECTIONS -->
+    <div class="card border-0 shadow-sm p-3 mb-4">
+        <h5 class="fw-bold mb-3">Inspections</h5>
+        {% if inspections %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Date Checked</th>
+                        <th>Technician</th>
+                        <th>Status</th>
+                        <th>Hardware</th>
+                        <th>Software</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for insp in inspections %}
+                    <tr>
+                        <td>{{ insp.date_checked }}</td>
+                        <td>{{ insp.technician.name }}</td>
+                        <td>{{ insp.status }}</td>
+                        <td>{{ insp.rating.first.hardware_condition|default:"---" }}</td>
+                        <td>{{ insp.rating.first.software_condition|default:"---" }}</td>
+                        <td>{{ insp.rating.first.remarks|default:"---" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No inspections recorded.</p>
+        {% endif %}
+    </div>
+
+    <!-- ADD UNIT MODAL -->
+    <div class="modal fade" id="addUnitModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Add Unit</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{% url 'add_unit' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="room_id" value="{{ room.id }}">
+                        <input type="text" name="asset_tag" class="form-control mb-2" placeholder="Asset Tag" required>
+                        <select name="status" class="form-control mb-2">
+                            <option value="Working">Working</option>
+                            <option value="Defective">Defective</option>
+                            <option value="Maintenance">Maintenance</option>
+                        </select>
+                        <input type="text" name="cpu" class="form-control mb-2" placeholder="CPU">
+                        <input type="text" name="ram" class="form-control mb-2" placeholder="RAM">
+                        <input type="text" name="gpu" class="form-control mb-2" placeholder="GPU">
+                        <input type="text" name="storage" class="form-control mb-2" placeholder="Storage">
+                        <input type="text" name="os" class="form-control mb-2" placeholder="Operating System">
+                        <input type="text" name="installed_apps" class="form-control mb-2" placeholder="Installed Apps">
+                        <button type="submit" class="btn btn-dark w-100">Add Unit</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
-</div>
 
-{% include "dashboard/modal/unit_modal.html" %}
-
-<div class="modal fade" id="deleteLabModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <form method="post" action="{% url 'delete_laboratory' room.id %}">
-                {% csrf_token %}
-                <div class="modal-body p-4 text-center">
-                    <i class="bi bi-exclamation-octagon text-danger fs-1 mb-3"></i>
-                    <h5 class="fw-bold">Confirm Deletion</h5>
-                    <p class="text-muted small">Are you sure you want to remove <strong>{{ room.room_name }}</strong> from the registry? This action is permanent.</p>
-                </div>
-                <div class="modal-footer border-0 justify-content-center pb-4">
-                    <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger px-4">Delete Lab</button>
-                </div>
-            </form>
+    <!-- DELETE LAB MODAL -->
+    <div class="modal fade" id="deleteLabModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form method="POST" action="{% url 'delete_laboratory' room.id %}">
+                    {% csrf_token %}
+                    <div class="modal-body text-center">
+                        <h5 class="fw-bold">Delete Laboratory</h5>
+                        <p>Are you sure you want to delete <strong>{{ room.room_name }}</strong>?</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
+
 </div>
 {% endblock %}

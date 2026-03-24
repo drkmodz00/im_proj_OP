@@ -35,10 +35,10 @@ class Hardware(models.Model):
     unit = models.ForeignKey(ComputerUnit, on_delete=models.CASCADE)
     manufacturer = models.CharField(max_length=100, blank=True)
     model_number = models.CharField(max_length=100, blank=True)
-    cpu = models.CharField(max_length=50)
-    ram = models.CharField(max_length=50)
-    storage = models.CharField(max_length=50)
-    gpu = models.CharField(max_length=50)
+    cpu = models.CharField(max_length=50, blank=True, null=True)
+    ram = models.CharField(max_length=50, blank=True, null=True)
+    storage = models.CharField(max_length=50, blank=True, null=True)
+    gpu = models.CharField(max_length=50, blank=True, null=True)
     network_adapter = models.CharField(max_length=100, blank=True)
 
     purchase_date = models.DateField(null=True, blank=True)
@@ -114,6 +114,7 @@ class Inspection(models.Model):
         return f"{self.unit.asset_tag} - {self.technician.name} ({self.period})"
 
 class ConditionRating(models.Model):
+    unit = models.ForeignKey(ComputerUnit, on_delete=models.CASCADE)
     inspection = models.ForeignKey(Inspection, on_delete=models.CASCADE, related_name='rating')
     hardware_condition = models.CharField(max_length=50)
     software_condition = models.CharField(max_length=50)
